@@ -21,25 +21,11 @@
 
 
         <section class="summary-cards">
-            <div class="card summary-card income loading">
-                <div class="icon-wrapper"><i class="fa-solid fa-arrow-trend-up"></i></div>
-                <div class="card-info">
-                    <h3>Pemasukan</h3>
-                    <p id="totalPemasukan" class="amount skeleton">Rp 0</p>
-                </div>
-            </div>
             <div class="card summary-card expense loading">
                 <div class="icon-wrapper"><i class="fa-solid fa-arrow-trend-down"></i></div>
                 <div class="card-info">
                     <h3>Pengeluaran</h3>
                     <p id="totalPengeluaran" class="amount skeleton">Rp 0</p>
-                </div>
-            </div>
-            <div class="card summary-card balance loading">
-                <div class="icon-wrapper"><i class="fa-solid fa-wallet"></i></div>
-                <div class="card-info">
-                    <h3>Saldo Tersisa</h3>
-                    <p id="saldoTersisa" class="amount skeleton">Rp 0</p>
                 </div>
             </div>
             <div class="card summary-card expense-month loading">
@@ -61,23 +47,15 @@
         <section class="filter-section">
             <div class="search-box">
                 <i class="fa-solid fa-search"></i>
-                <input type="text" id="searchInput" placeholder="Cari transaksi...">
+                <input type="text" id="searchInput" placeholder="Cari transkasi...">
             </div>
-            <div class="filter-group">
-                <select id="typeFilter">
-                    <option value="all">Semua Tipe</option>
-                    <option value="pemasukan">Pemasukan</option>
-                    <option value="pengeluaran">Pengeluaran</option>
-                </select>
-                <!-- Date filtering can be complex, sticking to simple search/type for now unless requested -->
-            </div>
+            <!-- Filter group removed as only expense is relevant -->
         </section>
 
         <section class="transactions-container">
-            <div class="tabs">
+            <div class="tabs" style="display: none;">
+                <!-- Tabs hidden as only one type exists -->
                 <button class="tab-btn active" data-tab="all">Semua Transaksi</button>
-                <button class="tab-btn" data-tab="pemasukan">Pemasukan</button>
-                <button class="tab-btn" data-tab="pengeluaran">Pengeluaran</button>
             </div>
 
             <div id="loading" class="loading-state">

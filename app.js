@@ -53,9 +53,8 @@ async function init() {
 
 function processData(data) {
     // Render Summary
-    document.getElementById('totalPemasukan').textContent = data.saldo.total_pemasukan ? formatRupiah(data.saldo.total_pemasukan) : 'Rp 0';
     document.getElementById('totalPengeluaran').textContent = data.saldo.total_pengeluaran ? formatRupiah(data.saldo.total_pengeluaran) : 'Rp 0';
-    document.getElementById('saldoTersisa').textContent = data.saldo.saldo_formatted || formatRupiah(data.saldo.saldo_tersisa);
+    // Removed Balance and Income updates as requested
 
     // Hitung Pengeluaran Bulan Ini & Rata-rata Harian
     const now = new Date();
@@ -104,12 +103,12 @@ function processData(data) {
     if (elDailyAvg) elDailyAvg.textContent = formatRupiah(dailyAverage);
 
     // Merge and Sort Transactions
-    const income = data.pemasukan.map(item => ({ ...item, type: 'pemasukan' }));
-    const expense = data.pengeluaran.map(item => ({ ...item, type: 'pengeluaran' }));
+    // Merge and Sort Transactions
+    const expense = (data.pengeluaran || []).map(item => ({ ...item, type: 'pengeluaran' }));
 
     // Sort by date descending (newest first)
     // Assuming created_at 'YYYY-MM-DD HH:MM:SS'
-    allTransactions = [...income, ...expense].sort((a, b) => {
+    allTransactions = [...expense].sort((a, b) => {
         return new Date(b.created_at) - new Date(a.created_at);
     });
 
@@ -162,9 +161,9 @@ function renderTransactions() {
 
     // Render Items
     paginatedItems.forEach(t => {
-        const isIncome = t.type === 'pemasukan';
-        const title = isIncome ? (t.keterangan || 'Pemasukan') : (t.keperluan || 'Pengeluaran');
-        const user = isIncome ? t.admin_nama : t.user_nama;
+        const isIncome = false; // Always false
+        const title = t.keperluan || 'Pengeluaran';
+        const user = t.user_nama;
         const amount = t.jumlah_formatted; // API provided formatted
 
         // Image handling - menggunakan proxy untuk menyembunyikan URL
@@ -302,6 +301,8 @@ function setupEventListeners() {
     });
 
     // Select Filter
+    // Select Filter removed
+    /*
     document.getElementById('typeFilter').addEventListener('change', (e) => {
         currentFilterType = e.target.value;
         currentPage = 1; // RESET PAGE
@@ -311,6 +312,7 @@ function setupEventListeners() {
         });
         renderTransactions();
     });
+    */
 
     // Search
     document.getElementById('searchInput').addEventListener('input', () => {
