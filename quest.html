@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Quest Rumah</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --card: #1e293b;
+            --card-border: #2f3b52;
+            --text: #e5e7eb;
+            --muted: #9ca3af;
+            --accent: #38bdf8;
+            --accent-glow: rgba(56, 189, 248, 0.3);
+            --success: #22c55e;
+            --danger: #ef4444;
+            --gradient: linear-gradient(135deg, #38bdf8 0%, #3b82f6 100%);
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Outfit', system-ui, -apple-system, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+
+        body {
+            margin: 0;
+            background: linear-gradient(180deg, #0b1220 0%, #0f172a 100%);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        /* Import Font if possible, otherwise fallback is set */
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap');
+
+        .container {
+            max-width: 460px;
+            margin: auto;
+            padding: 24px;
+            width: 100%;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 var(--accent-glow);
+            }
+
+            70% {
+                box-shadow: 0 0 0 10px rgba(56, 189, 248, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(56, 189, 248, 0);
+            }
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 32px;
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        h1 {
+            font-size: 24px;
+            font-weight: 700;
+            margin: 0 0 8px 0;
+            background: linear-gradient(to right, #fff, #94a3b8);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .quest-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .quest-card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            animation: fadeInUp 0.5s ease-out backwards;
+            transition: transform 0.2s, border-color 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .quest-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--accent);
+        }
+
+        .quest-card.accepted {
+            border-color: var(--success);
+            background: rgba(34, 197, 94, 0.05);
+        }
+
+        .quest-card.accepted::after {
+            content: '✓';
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            color: var(--success);
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .quest-title {
+            font-size: 17px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #f1f5f9;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .quest-icon {
+            width: 24px;
+            height: 24px;
+            background: rgba(56, 189, 248, 0.1);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--accent);
+            font-size: 14px;
+        }
+
+        .quest-desc {
+            font-size: 14px;
+            color: var(--muted);
+            line-height: 1.6;
+        }
+
+        .quest-desc b {
+            color: var(--accent);
+        }
+
+        .quest-meta {
+            margin-top: 16px;
+            display: flex;
+            gap: 8px;
+        }
+
+        .badge {
+            padding: 4px 12px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .badge-green {
+            background: rgba(34, 197, 94, 0.1);
+            color: var(--success);
+            border: 1px solid rgba(34, 197, 94, 0.2);
+        }
+
+        .badge-red {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
+        .action-area {
+            margin-top: 40px;
+            text-align: center;
+            animation: fadeInUp 0.6s ease-out 0.4s backwards;
+            padding-bottom: 40px;
+        }
+
+        .note-box {
+            background: rgba(56, 189, 248, 0.05);
+            border: 1px dashed var(--accent);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 24px;
+            font-size: 13px;
+            color: #94a3b8;
+            text-align: left;
+        }
+
+        .btn-agree {
+            background: var(--gradient);
+            color: white;
+            border: none;
+            padding: 16px 40px;
+            border-radius: 99px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 10px 25px -5px rgba(56, 189, 248, 0.5);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+            max-width: 300px;
+            animation: pulse 2s infinite;
+        }
+
+        .btn-agree:active {
+            transform: scale(0.96);
+        }
+
+        .btn-agree::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: 0.5s;
+        }
+
+        .btn-agree:hover::before {
+            left: 100%;
+        }
+
+        .btn-agree:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            animation: none;
+            box-shadow: none;
+            background: #334155;
+        }
+
+        .confirmation-input {
+            width: 100%;
+            max-width: 300px;
+            padding: 12px;
+            background: rgba(30, 41, 59, 0.5);
+            border: 2px solid var(--card-border);
+            border-radius: 8px;
+            color: white;
+            font-size: 16px;
+            text-align: center;
+            margin-bottom: 16px;
+            outline: none;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .confirmation-input:focus {
+            border-color: var(--accent);
+            background: rgba(30, 41, 59, 0.8);
+        }
+
+        .input-label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        /* Success State */
+        .success-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.95);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s;
+        }
+
+        .success-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .check-icon {
+            width: 80px;
+            height: 80px;
+            background: var(--success);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            color: white;
+            margin-bottom: 20px;
+            transform: scale(0);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .success-overlay.active .check-icon {
+            transform: scale(1);
+            transition-delay: 0.1s;
+        }
+
+        .success-text {
+            color: white;
+            font-size: 20px;
+            font-weight: 600;
+            text-align: center;
+            transform: translateY(20px);
+            opacity: 0;
+            transition: all 0.4s;
+        }
+
+        .success-overlay.active .success-text {
+            opacity: 1;
+            transform: translateY(0);
+            transition-delay: 0.2s;
+        }
+
+        /* Envelope Overlay */
+        .envelope-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #020617;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+            transition: opacity 0.5s ease;
+        }
+
+        .envelope-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .envelope-wrapper {
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .envelope-wrapper:hover {
+            transform: scale(1.02);
+        }
+
+        .envelope {
+            position: relative;
+            width: 320px;
+            height: 220px;
+            background: #1e293b;
+            border-radius: 0 0 10px 10px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .envelope-flap {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 0;
+            height: 0;
+            border-left: 160px solid transparent;
+            border-right: 160px solid transparent;
+            border-top: 120px solid #475569;
+            transform-origin: top;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), z-index 0.2s;
+            z-index: 5;
+        }
+
+        .envelope.open .envelope-flap {
+            transform: rotateX(180deg);
+            z-index: 1;
+        }
+
+        .envelope-pocket {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 0;
+            border-left: 160px solid #334155;
+            border-right: 160px solid #334155;
+            border-bottom: 110px solid #1e293b;
+            border-top: 110px solid transparent;
+            border-radius: 0 0 10px 10px;
+            z-index: 4;
+        }
+
+        .letter {
+            position: absolute;
+            bottom: 0;
+            left: 20px;
+            width: 280px;
+            height: 180px;
+            background: #fff;
+            border-radius: 4px;
+            padding: 24px 20px;
+            transition: transform 0.6s 0.4s cubic-bezier(0.4, 0, 0.2, 1), z-index 0s 1s;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+            background-image: linear-gradient(#f1f5f9 1px, transparent 1px);
+            background-size: 100% 24px;
+        }
+
+        .envelope.open .letter {
+            transform: translateY(-130px);
+            z-index: 6;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .letter-content {
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.4s 0.8s;
+            color: #334155;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .envelope.open .letter-content {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .letter p {
+            font-size: 14px;
+            line-height: 1.6;
+            margin: 0;
+            font-weight: 500;
+            font-family: 'Courier New', Courier, monospace;
+            /* Typewriter style */
+            color: #475569;
+        }
+
+        .btn-continue {
+            background: #0f172a;
+            color: white;
+            border: none;
+            padding: 8px 0;
+            width: 100%;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: auto;
+        }
+
+        .btn-continue:hover {
+            background: #334155;
+            transform: translateY(-1px);
+        }
+
+        /* Watermark */
+        .watermark {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-45deg);
+            font-size: 80px;
+            font-weight: 800;
+            color: rgba(34, 197, 94, 0.15);
+            border: 8px solid rgba(34, 197, 94, 0.15);
+            padding: 20px 40px;
+            border-radius: 20px;
+            z-index: 50;
+            pointer-events: none;
+            white-space: nowrap;
+            text-transform: uppercase;
+            display: none;
+        }
+
+        .watermark.visible {
+            display: block;
+        }
+
+        /* Utility */
+        .d-none {
+            display: none !important;
+        }
+
+        /* Loading Overlay */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #0f172a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 300;
+            transition: opacity 0.3s;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(56, 189, 248, 0.3);
+            border-top: 4px solid #38bdf8;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Initial hidden state for content to prevent flash */
+        .content-hidden {
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .content-visible {
+            opacity: 1;
+        }
+    </style>
+</head>
+
+<body>
+
+
+    <!-- Generic Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+    </div>
+
+    <div class="watermark d-none" id="watermark">DISETUJUI</div>
+
+    <div class="container content-hidden" id="mainContent">
+        <header>
+            <h1>Quest Rumah</h1>
+            <div class="subtitle">Kesepakatan & Tanggung Jawab</div>
+        </header>
+
+        <div class="quest-list">
+            <!-- Quest 1 -->
+            <div class="quest-card" style="animation-delay: 0.1s">
+                <div class="quest-title">
+                    <span class="quest-icon">✨</span>
+                    Bersih-bersih Rumah
+                </div>
+                <div class="quest-desc">
+                    Dilakukan setiap <b>tanggal ganjil</b>. Meliputi menyapu, lap debu jendela, kasur, meja, kursi,
+                    backdrop, dan memastikan area
+                    rumah bersih dan rapi.
+                </div>
+                <div class="quest-meta">
+                    <span class="badge badge-green">Utama</span>
+                </div>
+            </div>
+
+            <!-- Quest 2 -->
+            <div class="quest-card" style="animation-delay: 0.2s">
+                <div class="quest-title">
+                    <span class="quest-icon">💧</span>
+                    Ngepel & Kamar Mandi
+                </div>
+                <div class="quest-desc">
+                    Wajib setiap <b>hari Minggu</b>:
+                    <ul style="margin: 4px 0; padding-left: 20px; list-style-type: disc;">
+                        <li>Ngepel seluruh rumah</li>
+                        <li>Sikat closet & lantai kamar mandi</li>
+                    </ul>
+                    Kerjakan sampai tuntas & bersih.
+                </div>
+                <div class="quest-meta">
+                    <span class="badge badge-green">Mingguan</span>
+                </div>
+            </div>
+
+            <!-- Quest 3 -->
+            <div class="quest-card" style="animation-delay: 0.3s; border-color: rgba(239, 68, 68, 0.3);">
+                <div class="quest-title" style="color: var(--danger)">
+                    <span class="quest-icon" style="background: rgba(239, 68, 68, 0.1); color: var(--danger)">⚠️</span>
+                    Konsekuensi
+                </div>
+                <div class="quest-desc">
+                    Apabila seiring berjalanya waktu ditemukan keluhan, tidak diterima, atau quest tidak dikerjakan
+                    dengan
+                    baik,
+                    maka <b>program ini akan
+                        dihentikan</b> baik sementara maupun permanen.
+                </div>
+                <div class="quest-meta">
+                    <span class="badge badge-red">Wajib Tahu</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="action-area" id="actionArea">
+            <div class="note-box">
+                Pelaksanaan quest dilakukan oleh penerima program ini atau pihak yang mewakilinya.
+            </div>
+
+            <div id="inputSection">
+                <label class="input-label">Ketik <b>SETUJU</b> untuk melanjutkan</label>
+                <input type="text" class="confirmation-input" id="agreeInput" placeholder="" maxlength="6"
+                    autocomplete="off" onkeyup="checkInput()">
+
+                <button class="btn-agree" id="agreeBtn" onclick="acceptQuest()" disabled>
+                    Saya Setuju & Mengerti
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Overlay -->
+    <div class="success-overlay" id="successOverlay">
+        <div class="check-icon">✓</div>
+        <div class="success-text">
+            Kesepakatan Diterima!<br>
+            <span style="font-size: 14px; font-weight: 400; opacity: 0.8; margin-top: 8px; display: block;">Terima kasih
+                atas kerjasamanya.</span>
+        </div>
+    </div>
+
+    <!-- Envelope Overlay -->
+    <div class="envelope-overlay" id="envelopeOverlay" style="display: none;">
+        <div class="envelope-wrapper" onclick="openEnvelope()">
+            <div class="envelope">
+                <div class="envelope-flap"></div>
+                <div class="envelope-pocket"></div>
+                <div class="letter">
+                    <div class="letter-content">
+                        <p>Hai, untuk melanjutkan penggunaan program ini, terdapat persyaratan baru yang perlu
+                            disetujui.</p>
+                        <button class="btn-continue" onclick="dismissEnvelope(event)">Lanjut</button>
+                    </div>
+                </div>
+            </div>
+            <div
+                style="text-align: center; margin-top: 40px; color: #94a3b8; font-size: 14px; animation: pulse 2s infinite;">
+                Ketuk surat untuk membuka
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Create URLSearchParams object
+        const urlParams = new URLSearchParams(window.location.search);
+        const chatId = urlParams.get('chat_id');
+
+        if (!chatId) {
+            document.body.innerHTML = '<div style="color:white;text-align:center;padding:50px;">Link tidak valid (Chat ID hilang). Silakan buka dari bot Telegram.</div>';
+        } else {
+            // Check status immediately
+            checkStatus();
+        }
+
+        function checkStatus() {
+            // UPDATED: Proxied API URL
+            fetch('/api/quest?chat_id=' + chatId)
+                .then(response => response.json())
+                .then(data => {
+                    // Hide loading overlay with fade out
+                    const loader = document.getElementById('loadingOverlay');
+                    loader.style.opacity = '0';
+                    setTimeout(() => { loader.style.display = 'none'; }, 300);
+
+                    // Show main content
+                    const content = document.getElementById('mainContent');
+                    content.classList.remove('content-hidden');
+                    content.classList.add('content-visible');
+
+                    if (data.success) {
+                        if (data.quest_status === 'approved') {
+                            showApprovedView();
+                        } else if (data.quest_status === 'required') {
+                            // Default view (show envelope)
+                            document.getElementById('envelopeOverlay').style.display = 'flex';
+                        } else {
+                            // 'none' or other status
+                            showNoQuestView();
+                        }
+                    } else {
+                        // Error fetching status, assume default or show error?
+                        showNoQuestView();
+                    }
+                })
+                .catch(err => {
+                    console.error('Check status error', err);
+                    document.getElementById('loadingOverlay').style.display = 'none';
+                    showNoQuestView();
+                });
+        }
+
+        function showNoQuestView() {
+            document.body.innerHTML = `
+                <div class="container" style="display:flex; flex-direction:column; justify-content:center; align-items:center; height:100vh; text-align:center;">
+                    <div style="font-size:60px; margin-bottom:20px;">📭</div>
+                    <h1>Quest Tidak Tersedia</h1>
+                    <p style="color:var(--muted);">Saat ini belum ada quest yang harus Anda selesaikan.</p>
+                </div>
+            `;
+        }
+
+        function showApprovedView() {
+            // Hide envelope overlay
+            document.getElementById('envelopeOverlay').style.display = 'none';
+
+            // Hide input section ONLY
+            document.getElementById('inputSection').classList.add('d-none');
+
+            // Show watermark
+            document.getElementById('watermark').classList.remove('d-none');
+            document.getElementById('watermark').classList.add('visible');
+
+            // Mark all cards as accepted
+            const cards = document.querySelectorAll('.quest-card');
+            cards.forEach(card => card.classList.add('accepted'));
+        }
+
+        function checkInput() {
+            const input = document.getElementById('agreeInput');
+            const btn = document.getElementById('agreeBtn');
+
+            if (input.value.toUpperCase() === 'SETUJU') {
+                btn.disabled = false;
+            } else {
+                btn.disabled = true;
+            }
+        }
+
+        function acceptQuest() {
+            const btn = document.getElementById('agreeBtn');
+            if (btn.disabled) return;
+
+            if (!chatId) {
+                alert('Chat ID tidak ditemukan!');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = 'Memproses...';
+
+            // UPDATED: Proxied API URL
+            fetch('/api/quest', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ chat_id: chatId }),
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Switch to approved view visually
+                        const cards = document.querySelectorAll('.quest-card');
+                        cards.forEach((card, index) => {
+                            setTimeout(() => {
+                                card.classList.add('accepted');
+                            }, index * 100);
+                        });
+
+                        setTimeout(() => {
+                            const overlay = document.getElementById('successOverlay');
+                            overlay.classList.add('active');
+
+                            // After success animation, reload or adjust view
+                            setTimeout(() => {
+                                overlay.classList.remove('active');
+                                showApprovedView();
+                            }, 2000);
+                        }, 600);
+                    } else {
+                        alert('Gagal: ' + (data.message || 'Terjadi kesalahan'));
+                        btn.disabled = false;
+                        btn.innerHTML = 'Saya Setuju & Mengerti';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Terjadi kesalahan koneksi.');
+                    btn.disabled = false;
+                    btn.innerHTML = 'Saya Setuju & Mengerti';
+                });
+        }
+
+        function openEnvelope() {
+            const envelope = document.querySelector('.envelope');
+            if (!envelope.classList.contains('open')) {
+                envelope.classList.add('open');
+            }
+        }
+
+        function dismissEnvelope(event) {
+            event.stopPropagation(); // Prevent triggering openEnvelope again
+            const overlay = document.getElementById('envelopeOverlay');
+            overlay.classList.add('hidden');
+
+            setTimeout(() => {
+                overlay.style.display = 'none';
+            }, 500);
+        }
+
+        // UX Improvements
+        document.addEventListener('DOMContentLoaded', () => {
+            const agreeInput = document.getElementById('agreeInput');
+
+            if (agreeInput) {
+                // Scroll to bottom when input is focused (keyboard opens)
+                agreeInput.addEventListener('focus', function () {
+                    setTimeout(() => {
+                        window.scrollTo({
+                            top: document.body.scrollHeight,
+                            behavior: 'smooth'
+                        });
+                        // Ensure input section is visible
+                        document.getElementById('inputSection').scrollIntoView({ behavior: "smooth", block: "center" });
+                    }, 300);
+                });
+
+
+                // Dismiss keyboard on Enter key
+                agreeInput.addEventListener('keydown', function (event) {
+                    if (event.key === 'Enter') {
+                        event.preventDefault();
+                        agreeInput.blur();
+                    }
+                });
+
+                // Dismiss keyboard when clicking/touching outside
+                document.addEventListener('click', function (event) {
+                    if (event.target !== agreeInput && document.activeElement === agreeInput) {
+                        agreeInput.blur();
+                    }
+                });
+            }
+        });
+    </script>
+
+</body>
+
+</html>

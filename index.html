@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laporan Keuangan</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- CSS -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <header class="main-header">
+            <div class="header-content">
+                <h1><i class="fa-solid fa-chart-pie"></i> Laporan Keuangan</h1>
+                <p class="subtitle">Data real-time dari API </p>
+            </div>
+            <div class="header-actions">
+                <button id="printBtn" class="btn btn-primary"><i class="fa-solid fa-print"></i> Cetak Laporan</button>
+            </div>
+        </header>
+
+        <section class="summary-cards">
+            <div class="card summary-card income loading">
+                <div class="icon-wrapper"><i class="fa-solid fa-arrow-trend-up"></i></div>
+                <div class="card-info">
+                    <h3>Pemasukan</h3>
+                    <p id="totalPemasukan" class="amount skeleton">Rp 0</p>
+                </div>
+            </div>
+            <div class="card summary-card expense loading">
+                <div class="icon-wrapper"><i class="fa-solid fa-arrow-trend-down"></i></div>
+                <div class="card-info">
+                    <h3>Pengeluaran</h3>
+                    <p id="totalPengeluaran" class="amount skeleton">Rp 0</p>
+                </div>
+            </div>
+            <div class="card summary-card balance loading">
+                <div class="icon-wrapper"><i class="fa-solid fa-wallet"></i></div>
+                <div class="card-info">
+                    <h3>Saldo Tersisa</h3>
+                    <p id="saldoTersisa" class="amount skeleton">Rp 0</p>
+                </div>
+            </div>
+            <div class="card summary-card expense-month loading">
+                <div class="icon-wrapper"><i class="fa-solid fa-calendar-day"></i></div>
+                <div class="card-info">
+                    <h3>Bulan Ini</h3>
+                    <p id="totalPengeluaranBulanIni" class="amount skeleton">Rp 0</p>
+                </div>
+            </div>
+            <div class="card summary-card expense-daily loading">
+                <div class="icon-wrapper"><i class="fa-solid fa-chart-line"></i></div>
+                <div class="card-info">
+                    <h3>Rata-rata Harian</h3>
+                    <p id="rataRataPengeluaranHarian" class="amount skeleton">Rp 0</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="filter-section">
+            <div class="search-box">
+                <i class="fa-solid fa-search"></i>
+                <input type="text" id="searchInput" placeholder="Cari transaksi...">
+            </div>
+            <div class="filter-group">
+                <select id="typeFilter">
+                    <option value="all">Semua Tipe</option>
+                    <option value="pemasukan">Pemasukan</option>
+                    <option value="pengeluaran">Pengeluaran</option>
+                </select>
+                <!-- Date filtering can be complex, sticking to simple search/type for now unless requested -->
+            </div>
+        </section>
+
+        <section class="transactions-container">
+            <div class="tabs">
+                <button class="tab-btn active" data-tab="all">Semua Transaksi</button>
+                <button class="tab-btn" data-tab="pemasukan">Pemasukan</button>
+                <button class="tab-btn" data-tab="pengeluaran">Pengeluaran</button>
+            </div>
+
+            <div id="loading" class="loading-state">
+                <div class="spinner"></div>
+                <p>Memuat data...</p>
+            </div>
+
+            <div id="transactionsList" class="transactions-list hidden">
+                <!-- Transaction items will be injected here -->
+            </div>
+
+            <!-- Pagination Controls -->
+            <div id="paginationControls" class="pagination-controls hidden"></div>
+        </section>
+
+        <footer class="main-footer">
+            <div class="footer-content">
+                <p>&copy; 2025 Created with <i class="fa-solid fa-dollar-sign heart-icon"></i> by <span
+                        class="brand-name">Gilang Rhuka</span></p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Modal for details/image -->
+    <div id="imageModal" class="modal">
+        <span class="close-modal">&times;</span>
+        <div class="modal-body">
+            <div id="modalLoader" class="modal-loader hidden">
+                <div class="spinner"></div>
+            </div>
+            <img class="modal-content" id="modalImage">
+        </div>
+        <div id="caption"></div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+
+</html>
