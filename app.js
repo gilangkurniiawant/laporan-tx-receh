@@ -320,19 +320,21 @@ function setupEventListeners() {
         renderTransactions();
     });
 
-    // Print
     // Print (Modified with validation)
-    document.getElementById('printBtn').addEventListener('click', () => {
-        if (!isDataLoaded) {
-            showToast('Data sedang dimuat, mohon tunggu sebentar...', 'error');
-            return;
-        }
-        if (allTransactions.length === 0) {
-            showToast('Tidak ada data transaksi untuk dicetak.', 'error');
-            return;
-        }
-        window.print();
-    });
+    const printBtn = document.getElementById('printBtn');
+    if (printBtn) {
+        printBtn.addEventListener('click', () => {
+            if (!isDataLoaded) {
+                showToast('Data sedang dimuat, mohon tunggu sebentar...', 'error');
+                return;
+            }
+            if (allTransactions.length === 0) {
+                showToast('Tidak ada data transaksi untuk dicetak.', 'error');
+                return;
+            }
+            window.print();
+        });
+    }
 
     // Modal Close
     const modal = document.getElementById('imageModal');
@@ -346,10 +348,10 @@ function setupEventListeners() {
 
     document.querySelector('.close-modal').addEventListener('click', closeModal);
 
-    // Close on click outside (background)
+    // Close on click outside (background or caption)
     modal.addEventListener('click', (event) => {
-        // Only close if clicking the modal backdrop itself
-        if (event.target === modal) {
+        // Close if clicking the modal backdrop itself or the caption
+        if (event.target === modal || event.target.id === 'caption' || event.target.classList.contains('modal-body')) {
             closeModal();
         }
     });
