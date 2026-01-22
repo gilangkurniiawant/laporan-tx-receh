@@ -153,16 +153,6 @@ function updateDateTime() {
     const dateStr = now.toLocaleDateString('id-ID', options);
     const dateEl = document.getElementById('currentDateText');
     if (dateEl) dateEl.textContent = dateStr;
-
-    const hours = now.getHours();
-    let greeting = 'Halo, Admin 👋';
-    if (hours < 12) greeting = 'Selamat Pagi, Admin ☀️';
-    else if (hours < 15) greeting = 'Selamat Siang, Admin 🌤️';
-    else if (hours < 18) greeting = 'Selamat Sore, Admin 🌅';
-    else greeting = 'Selamat Malam, Admin 🌙';
-
-    const greetingEl = document.getElementById('greetingText');
-    if (greetingEl) greetingEl.textContent = greeting;
 }
 
 async function init() {
