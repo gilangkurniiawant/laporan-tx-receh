@@ -18,7 +18,7 @@ const CATEGORIES = [
 
 const KEYWORDS = {
     "Kebutuhan Pokok": ["beras", "minyak", "telur", "sayur", "lauk", "bumbu", "belanja bulanan", "pasar", "alfamart", "indomaret", "makan", "nasi", "galon", "aqua"],
-    "Kebutuhan Bayi": ["pampers", "susu bayi", "popok", "bubur bayi", "diaper", "mamy poko", "sweety", "merries"],
+    "Kebutuhan Bayi": ["pampers", "susu", "popok", "bubur bayi", "diaper", "mamy poko", "sweety", "merries"],
     "Tempat Tinggal": ["listrik", "air", "token", "sampah", "iuran", "pbb", "sewa", "kost", "wifi", "indihome"],
     "Transportasi": ["bensin", "pertalite", "pertamax", "ojek", "grab", "gojek", "parkir", "service", "ganti oli", "ban", "tambal"],
     "Gaya Hidup & Hiburan": ["cilok", "seblak", "kopi", "jajan", "nonton", "netflix", "boker", "topup", "game", "shopee", "tiktok", "pulsa"],
