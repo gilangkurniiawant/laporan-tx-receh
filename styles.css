@@ -883,6 +883,33 @@ body {
     color: #ef4444;
 }
 
+.app-footer {
+    text-align: center;
+    padding: 40px 20px;
+    margin-top: 40px;
+    color: var(--text-secondary);
+    border-top: 1px solid var(--border-color);
+}
+
+.app-footer p {
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.moving-dollar {
+    display: inline-block;
+    color: #10b981;
+    animation: dollar-pulse 2s infinite ease-in-out;
+    margin: 0 4px;
+}
+
+@keyframes dollar-pulse {
+    0% { transform: translateY(0) scale(1) rotate(0); }
+    50% { transform: translateY(-3px) scale(1.2) rotate(15deg); }
+    100% { transform: translateY(0) scale(1) rotate(0); }
+}
+
+
 @media (max-width: 480px) {
     .stats-summary-grid {
         grid-template-columns: 1fr;
