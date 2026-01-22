@@ -106,6 +106,7 @@ const KEYWORDS = {
         "tambal"
     ],
     "Gaya Hidup & Hiburan": [
+        "jajan",
         "sate",
         "cilok",
         "pentol",
