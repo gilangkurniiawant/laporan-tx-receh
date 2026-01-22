@@ -55,9 +55,13 @@ async function init() {
 
 function processData(data) {
     const pengeluaran = data.pengeluaran || [];
+    const saldo = data.saldo || {};
 
     // Update Totals
-    document.getElementById('totalPengeluaran').textContent = data.saldo.total_pengeluaran ? formatRupiah(data.saldo.total_pengeluaran) : 'Rp 0';
+    const totalPengeluaranEl = document.getElementById('totalPengeluaran');
+    if (totalPengeluaranEl) {
+        totalPengeluaranEl.textContent = saldo.total_pengeluaran !== undefined ? formatRupiah(saldo.total_pengeluaran) : 'Rp 0';
+    }
     document.getElementById('totalTransaksiCount').textContent = pengeluaran.length;
 
     // Filter data pengeluaran bulan ini
@@ -242,8 +246,12 @@ function toggleLoading(show) {
 function toggleSummaryLoading(show) {
     const elements = document.querySelectorAll('.skeleton, .skeleton-small');
     elements.forEach(el => {
-        if (show) el.style.opacity = '0.5';
-        else el.style.opacity = '1';
+        if (show) {
+            el.style.opacity = '0.5';
+        } else {
+            el.style.opacity = '1';
+            el.classList.remove('skeleton', 'skeleton-small');
+        }
     });
 }
 
