@@ -324,7 +324,20 @@ window.closeStatsModal = function () {
 
 function renderCategoryDetails() {
     const container = document.getElementById('categoryDetails');
+    if (!container) return;
+
+    if (!window.currentStats || !window.currentStats.monthlyItems || window.currentStats.monthlyItems.length === 0) {
+        container.innerHTML = `
+            <div style="text-align: center; padding: 30px; color: var(--text-secondary); opacity: 0.6;">
+                <i class="fa-solid fa-chart-pie" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                <p>Belum ada data pengeluaran bulan ini.</p>
+            </div>
+        `;
+        return;
+    }
+
     const items = window.currentStats.monthlyItems;
+    const monthlyTotal = window.currentStats.monthlyTotal || 1;
 
     // Group items by category for breakdown
     const itemsByCategory = {};
@@ -333,7 +346,12 @@ function renderCategoryDetails() {
 
     items.forEach(t => {
         const cat = t.kategori || 'Belum Ada Kategori';
-        if (itemsByCategory[cat]) itemsByCategory[cat].push(t);
+        if (itemsByCategory[cat]) {
+            itemsByCategory[cat].push(t);
+        } else {
+            if (!itemsByCategory[cat]) itemsByCategory[cat] = [];
+            itemsByCategory[cat].push(t);
+        }
     });
 
     const breakdown = Object.entries(itemsByCategory)
@@ -346,13 +364,19 @@ function renderCategoryDetails() {
         .sort((a, b) => b.total - a.total);
 
     container.innerHTML = breakdown.map(b => {
-        const tableRows = b.items.map(t => `
-            <tr>
-                <td class="td-date">${t.tanggal_formatted.split(',')[0]}</td>
-                <td>${t.keperluan || t.keterangan || 'Tanpa Keterangan'}</td>
-                <td class="td-price">${formatRupiah(t.jumlah)}</td>
-            </tr>
-        `).join('');
+        const tableRows = b.items.map(t => {
+            const dateStr = t.tanggal_formatted ? t.tanggal_formatted.split(',')[0] : '?';
+            const desc = t.keperluan || t.keterangan || 'Pengeluaran';
+            return `
+                <tr>
+                    <td class="td-date">${dateStr}</td>
+                    <td>${desc}</td>
+                    <td class="td-price">${formatRupiah(t.jumlah)}</td>
+                </tr>
+            `;
+        }).join('');
+
+        const percent = ((b.total / monthlyTotal) * 100).toFixed(1);
 
         return `
             <div class="cat-detail-row" onclick="this.classList.toggle('open')" style="border-left-color: ${getCategoryColor(b.name)}">
@@ -363,12 +387,14 @@ function renderCategoryDetails() {
                     </div>
                     <div class="cat-amount-info">
                         <span class="cat-amount">- ${formatRupiah(b.total)}</span>
-                        <span class="cat-percent">${((b.total / window.currentStats.monthlyTotal) * 100).toFixed(1)}% <i class="fa-solid fa-chevron-down"></i></span>
+                        <span class="cat-percent">${percent}% <i class="fa-solid fa-chevron-down"></i></span>
                     </div>
                 </div>
                 <div class="cat-detail-table">
                     <table class="mini-table">
-                        ${tableRows}
+                        <tbody>
+                            ${tableRows}
+                        </tbody>
                     </table>
                 </div>
             </div>
