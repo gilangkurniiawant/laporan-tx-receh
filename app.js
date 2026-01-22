@@ -213,44 +213,69 @@ function calculateSummary() {
     const now = new Date();
     const currentMonth = now.getMonth();
     const currentYear = now.getFullYear();
+    const searchVal = document.getElementById('searchInput').value.toLowerCase();
 
     const parseDate = (dateStr) => {
         if (!dateStr) return new Date();
         return new Date(dateStr.replace(' ', 'T'));
     };
 
-    // Calculate Global Stats (not affected by search/category filters)
-    const yearlyItems = allTransactions.filter(item => {
+    // 1. Calculate Global Stats for Analysis Modal (Always Monthly, regardless of filter)
+    const globalMonthlyItems = allTransactions.filter(item => {
+        const date = parseDate(item.created_at);
+        return date.getMonth() === currentMonth && date.getFullYear() === currentYear;
+    });
+
+    const globalYearlyTotal = allTransactions.filter(item => {
         const date = parseDate(item.created_at);
         return date.getFullYear() === currentYear;
-    });
+    }).reduce((acc, item) => acc + (parseInt(item.jumlah) || 0), 0);
 
-    const monthlyItems = yearlyItems.filter(item => {
-        const date = parseDate(item.created_at);
-        return date.getMonth() === currentMonth;
-    });
+    const globalMonthlyTotal = globalMonthlyItems.reduce((acc, item) => acc + (parseInt(item.jumlah) || 0), 0);
 
-    const yearlyTotal = yearlyItems.reduce((acc, item) => acc + (parseInt(item.jumlah) || 0), 0);
-    const monthlyTotal = monthlyItems.reduce((acc, item) => acc + (parseInt(item.jumlah) || 0), 0);
-
-    // Daily Average (Monthly)
-    let dailyAverage = 0;
-    if (monthlyItems.length > 0) {
-        const activeDays = new Set();
-        monthlyItems.forEach(item => {
-            const date = parseDate(item.created_at);
-            activeDays.add(date.toDateString());
-        });
-        if (activeDays.size > 0) dailyAverage = monthlyTotal / activeDays.size;
+    let globalDailyAvg = 0;
+    if (globalMonthlyItems.length > 0) {
+        const days = new Set(globalMonthlyItems.map(i => parseDate(i.created_at).toDateString())).size;
+        if (days > 0) globalDailyAvg = globalMonthlyTotal / days;
     }
 
-    // Update Dashboard UI
-    document.getElementById('totalPengeluaran').textContent = formatRupiah(yearlyTotal);
-    document.getElementById('totalPengeluaranBulanIni').textContent = formatRupiah(monthlyTotal);
-    document.getElementById('rataRataPengeluaranHarian').textContent = formatRupiah(dailyAverage);
+    window.currentStats = {
+        yearlyTotal: globalYearlyTotal,
+        monthlyTotal: globalMonthlyTotal,
+        dailyAverage: globalDailyAvg,
+        monthlyItems: globalMonthlyItems
+    };
 
-    // Store these for the stats modal
-    window.currentStats = { yearlyTotal, monthlyTotal, dailyAverage, monthlyItems };
+    // 2. Calculate Filtered Stats for Dashboard Cards
+    const filteredData = allTransactions.filter(t => {
+        let matchesCategory = false;
+        if (currentCategoryFilter === 'Semua') {
+            matchesCategory = true;
+        } else if (currentCategoryFilter === 'Belum Ada Kategori') {
+            matchesCategory = !t.kategori;
+        } else {
+            matchesCategory = t.kategori === currentCategoryFilter;
+        }
+        const text = (t.keperluan || t.keterangan || t.user_nama || '').toLowerCase();
+        return matchesCategory && text.includes(searchVal);
+    });
+
+    const yearlyFiltered = filteredData.filter(item => parseDate(item.created_at).getFullYear() === currentYear);
+    const monthlyFiltered = yearlyFiltered.filter(item => parseDate(item.created_at).getMonth() === currentMonth);
+
+    const cardsYearlyTotal = yearlyFiltered.reduce((acc, item) => acc + (parseInt(item.jumlah) || 0), 0);
+    const cardsMonthlyTotal = monthlyFiltered.reduce((acc, item) => acc + (parseInt(item.jumlah) || 0), 0);
+
+    let cardsDailyAvg = 0;
+    if (monthlyFiltered.length > 0) {
+        const days = new Set(monthlyFiltered.map(i => parseDate(i.created_at).toDateString())).size;
+        if (days > 0) cardsDailyAvg = cardsMonthlyTotal / days;
+    }
+
+    // Update Dashboard UI with Filtered stats
+    document.getElementById('totalPengeluaran').textContent = formatRupiah(cardsYearlyTotal);
+    document.getElementById('totalPengeluaranBulanIni').textContent = formatRupiah(cardsMonthlyTotal);
+    document.getElementById('rataRataPengeluaranHarian').textContent = formatRupiah(cardsDailyAvg);
 }
 
 let categoryChart = null;
