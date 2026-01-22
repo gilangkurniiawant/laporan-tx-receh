@@ -251,19 +251,8 @@ function calculateSummary(data) {
 
     // Update UI
     document.getElementById('totalPengeluaran').textContent = formatRupiah(totalExpense);
-    document.getElementById('totalTransaksiCount').textContent = data.length;
     document.getElementById('totalPengeluaranBulanIni').textContent = formatRupiah(monthlyExpense);
     document.getElementById('rataRataPengeluaranHarian').textContent = formatRupiah(dailyAverage);
-
-    // Last Transaction Banner
-    if (data.length > 0) {
-        const last = data[0];
-        document.getElementById('lastTransactionAmount').textContent = formatRupiah(last.jumlah);
-        document.getElementById('lastTransactionDate').textContent = `${last.keperluan} • ${last.tanggal_formatted}`;
-    } else {
-        document.getElementById('lastTransactionAmount').textContent = 'Rp 0';
-        document.getElementById('lastTransactionDate').textContent = 'Tidak ada data';
-    }
 }
 
 function renderCategoryFilters() {
@@ -352,14 +341,16 @@ function renderTransactions(filtered = null) {
                     <p>${user}</p>
                     <div class="t-meta">
                         ${imageBtn}
-                        ${categorySelector}
                     </div>
                 </div>
             </div>
             <div class="t-right">
                 <span class="t-amount">- ${amount}</span>
                 <span class="t-date">${t.tanggal_formatted}</span>
-                ${t.status ? `<div class="t-status status-${t.status.toLowerCase()}">${t.status}</div>` : ''}
+                <div class="t-meta-right">
+                    ${categorySelector}
+                    ${t.status ? `<div class="t-status status-${t.status.toLowerCase()}">${t.status}</div>` : ''}
+                </div>
             </div>
         `;
         listContainer.appendChild(item);
