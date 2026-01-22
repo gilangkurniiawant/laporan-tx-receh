@@ -90,6 +90,8 @@ const KEYWORDS = {
         "indihome"
     ],
     "Transportasi": [
+        "pertamx",
+        "motor",
         "ojol",
         "bensin",
         "pertalite",
