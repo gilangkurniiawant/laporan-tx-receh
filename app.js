@@ -389,11 +389,23 @@ function getCategoryColor(cat) {
 
 function renderCategoryFilters() {
     const container = document.getElementById('categoryFilters');
-    const hasUncategorized = allTransactions.some(t => !t.kategori);
 
+    // Calculate total spending per category for sorting
+    const categorySpending = {};
+    CATEGORIES.forEach(cat => categorySpending[cat] = 0);
+    allTransactions.forEach(t => {
+        if (t.kategori && categorySpending.hasOwnProperty(t.kategori)) {
+            categorySpending[t.kategori] += (parseInt(t.jumlah) || 0);
+        }
+    });
+
+    // Sort CATEGORIES copy by spending descending
+    const sortedCategories = [...CATEGORIES].sort((a, b) => categorySpending[b] - categorySpending[a]);
+
+    const hasUncategorized = allTransactions.some(t => !t.kategori);
     let categories = ['Semua'];
     if (hasUncategorized) categories.push('Belum Ada Kategori');
-    categories = [...categories, ...CATEGORIES];
+    categories = [...categories, ...sortedCategories];
 
     container.innerHTML = categories.map(cat => `
         <div class="filter-chip ${currentCategoryFilter === cat ? 'active' : ''}" onclick="setCategoryFilter('${cat}')">
@@ -502,12 +514,18 @@ function renderPaginationControls(totalPages) {
     const container = document.getElementById('paginationControls');
     container.innerHTML = '';
 
+    const scrollTarget = document.querySelector('.section-header');
+
     const createBtn = (text, page, isActive = false, isDisabled = false) => {
         const btn = document.createElement('button');
         btn.className = `pagination-btn ${isActive ? 'active' : ''}`;
         btn.innerHTML = text;
         if (isDisabled) btn.disabled = true;
-        else btn.onclick = () => { currentPage = page; renderTransactions(); window.scrollTo({ top: 0, behavior: 'smooth' }); };
+        else btn.onclick = () => {
+            currentPage = page;
+            renderTransactions();
+            if (scrollTarget) scrollTarget.scrollIntoView({ behavior: 'smooth' });
+        };
         return btn;
     };
 
