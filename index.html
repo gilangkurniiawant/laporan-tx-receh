@@ -9,7 +9,7 @@
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- CSS -->
@@ -17,45 +17,89 @@
 </head>
 
 <body>
+    <header class="top-nav">
+        <div class="nav-container">
+            <button class="menu-btn"><i class="fa-solid fa-bars-staggered"></i></button>
+            <div class="logo">
+                <div class="logo-icon"><i class="fa-solid fa-calculator"></i></div>
+                <span>Receh Reports</span>
+            </div>
+            <div class="nav-right"></div>
+        </div>
+    </header>
+
     <div class="app-container">
+        <section class="profile-section">
+            <h1 id="greetingText">Halo, Admin 👋</h1>
+            <p id="currentDateText" class="current-date">Kamis, 22 Januari 2026</p>
+        </section>
 
-
-        <section class="summary-cards">
-            <div class="card summary-card expense loading">
-                <div class="icon-wrapper"><i class="fa-solid fa-arrow-trend-down"></i></div>
-                <div class="card-info">
-                    <h3>Pengeluaran</h3>
-                    <p id="totalPengeluaran" class="amount skeleton">Rp 0</p>
+        <section class="summary-grid">
+            <div class="card stat-card gradient-purple">
+                <div class="card-header">
+                    <span class="card-label">Pengeluaran Tahun Ini</span>
+                    <div class="card-icon-small"><i class="fa-solid fa-wallet"></i></div>
+                </div>
+                <div class="card-body">
+                    <h2 id="totalPengeluaran" class="amount skeleton">Rp 0</h2>
+                    <p class="card-subtext">akumulasi tahun ini</p>
                 </div>
             </div>
-            <div class="card summary-card expense-month loading">
-                <div class="icon-wrapper"><i class="fa-solid fa-calendar-day"></i></div>
-                <div class="card-info">
-                    <h3>Bulan Ini</h3>
-                    <p id="totalPengeluaranBulanIni" class="amount skeleton">Rp 0</p>
+
+            <div class="card stat-card gradient-green">
+                <div class="card-header">
+                    <span class="card-label">Rata-rata</span>
+                    <div class="card-icon-small"><i class="fa-solid fa-chart-line"></i></div>
+                </div>
+                <div class="card-body">
+                    <h2 id="rataRataPengeluaranHarian" class="amount skeleton">Rp 0</h2>
+                    <p class="card-subtext">per hari aktif</p>
                 </div>
             </div>
-            <div class="card summary-card expense-daily loading">
-                <div class="icon-wrapper"><i class="fa-solid fa-chart-line"></i></div>
-                <div class="card-info">
-                    <h3>Rata-rata Harian</h3>
-                    <p id="rataRataPengeluaranHarian" class="amount skeleton">Rp 0</p>
+
+            <div class="card stat-card white-card">
+                <div class="card-content">
+                    <div class="card-icon-circle yellow"><i class="fa-solid fa-clock-rotate-left"></i></div>
+                    <div class="card-details">
+                        <span class="card-label">Bulan Ini</span>
+                        <h3 id="totalPengeluaranBulanIni" class="skeleton-small">Rp 0</h3>
+                        <p class="card-subtext">transaksi keluar</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card stat-card white-card">
+                <div class="card-content">
+                    <div class="card-icon-circle green"><i class="fa-solid fa-circle-check"></i></div>
+                    <div class="card-details">
+                        <span class="card-label">Total Transaksi</span>
+                        <h3 id="totalTransaksiCount" class="skeleton-small">0</h3>
+                        <p class="card-subtext">item terdata</p>
+                    </div>
                 </div>
             </div>
         </section>
 
-        <section class="filter-section">
-            <div class="search-box">
-                <i class="fa-solid fa-search"></i>
-                <input type="text" id="searchInput" placeholder="Cari transkasi...">
+        <section class="banner-card gradient-indigo">
+            <div class="banner-content">
+                <div class="banner-info">
+                    <div class="banner-icon"><i class="fa-solid fa-file-invoice-dollar"></i></div>
+                    <div class="banner-text">
+                        <span class="banner-label">Pengeluaran Terakhir</span>
+                        <h2 id="lastTransactionAmount">Rp 0</h2>
+                        <span id="lastTransactionDate" class="banner-subtext">Menunggu data...</span>
+                    </div>
+                </div>
             </div>
-            <!-- Filter group removed as only expense is relevant -->
         </section>
 
-        <section class="transactions-container">
-            <div class="tabs" style="display: none;">
-                <!-- Tabs hidden as only one type exists -->
-                <button class="tab-btn active" data-tab="all">Semua Transaksi</button>
+        <section class="transactions-section">
+            <div class="section-header">
+                <h2>Riwayat Transaksi</h2>
+                <div class="search-box">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" id="searchInput" placeholder="Cari transaksi...">
+                </div>
             </div>
 
             <div id="loading" class="loading-state">
@@ -70,14 +114,30 @@
             <!-- Pagination Controls -->
             <div id="paginationControls" class="pagination-controls hidden"></div>
         </section>
-
-        <footer class="main-footer">
-            <div class="footer-content">
-                <p>&copy; 2025 Created with <i class="fa-solid fa-dollar-sign heart-icon"></i> by <span
-                        class="brand-name">Gilang Rhuka</span></p>
-            </div>
-        </footer>
     </div>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <div class="nav-item active">
+            <i class="fa-solid fa-house"></i>
+            <span>Beranda</span>
+        </div>
+        <div class="nav-item">
+            <i class="fa-solid fa-list-ul"></i>
+            <span>Transaksi</span>
+        </div>
+        <div class="nav-extra-btn">
+            <button class="fab-btn"><i class="fa-solid fa-plus"></i></button>
+        </div>
+        <div class="nav-item">
+            <i class="fa-solid fa-users"></i>
+            <span>Admin</span>
+        </div>
+        <div class="nav-item">
+            <i class="fa-solid fa-chart-pie"></i>
+            <span>Laporan</span>
+        </div>
+    </nav>
 
     <!-- Modal for details/image -->
     <div id="imageModal" class="modal">
