@@ -992,7 +992,9 @@ body {
 .app-footer {
     text-align: center;
     padding: 30px 20px;
-    margin: 40px 15px 30px;
+    margin: 40px auto 30px;
+    max-width: 600px;
+    width: calc(100% - 40px);
     background: rgba(255, 255, 255, 0.4);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
