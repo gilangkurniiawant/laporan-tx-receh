@@ -313,7 +313,7 @@ function renderTransactions(filtered = null) {
                 if (parts.length > 1) rawPath = 's/' + btoa(parts[1]);
             }
             const photoUrl = `${IMAGE_PROXY_URL}?path=${encodeURIComponent(rawPath)}`;
-            imageBtn = `<div class="photo-badge" onclick="showImage('${photoUrl}', '${title}')"><i class="fa-solid fa-image"></i> Lihat Bukti</div>`;
+            imageBtn = `<div class="photo-badge" onclick="showImage('${photoUrl}', '${title}', '${amount}')"><i class="fa-solid fa-image"></i> Lihat Bukti</div>`;
         }
 
         const item = document.createElement('div');
@@ -444,15 +444,31 @@ function toggleSummaryLoading(show) {
     });
 }
 
-window.showImage = function (url, caption) {
+window.showImage = function (url, caption, amount) {
     const modal = document.getElementById('imageModal');
     const modalImg = document.getElementById('modalImage');
     const captionText = document.getElementById('caption');
+    const loader = document.getElementById('modalLoader');
 
     modal.style.display = "flex";
     requestAnimationFrame(() => modal.classList.add('show'));
-    captionText.textContent = caption;
+
+    // Sembunyikan gambar lama & tampilkan loader
+    modalImg.classList.add('hidden');
+    loader.classList.remove('hidden');
+
+    captionText.textContent = `${caption} • ${amount}`;
     modalImg.src = url;
+
+    modalImg.onload = () => {
+        loader.classList.add('hidden');
+        modalImg.classList.remove('hidden');
+    };
+
+    modalImg.onerror = () => {
+        loader.classList.add('hidden');
+        captionText.textContent = "Gagal memuat bukti pembayaran";
+    };
 }
 
 function predictCategory(text) {
