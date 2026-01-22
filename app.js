@@ -195,7 +195,7 @@ async function init() {
 
 function updateDisplay() {
     const filtered = filterTransactions();
-    calculateSummary(filtered);
+    calculateSummary();
     renderCategoryFilters();
     currentPage = 1;
     renderTransactions(filtered);
@@ -219,7 +219,7 @@ function filterTransactions() {
     }).sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 }
 
-function calculateSummary(data) {
+function calculateSummary() {
     const now = new Date();
     const currentMonth = now.getMonth();
     const currentYear = now.getFullYear();
@@ -229,16 +229,21 @@ function calculateSummary(data) {
         return new Date(dateStr.replace(' ', 'T'));
     };
 
-    const totalExpense = data.reduce((acc, item) => acc + (parseInt(item.jumlah) || 0), 0);
-
-    const monthlyItems = data.filter(item => {
+    // Calculate Global Stats (not affected by search/category filters)
+    const yearlyItems = allTransactions.filter(item => {
         const date = parseDate(item.created_at);
-        return date.getMonth() === currentMonth && date.getFullYear() === currentYear;
+        return date.getFullYear() === currentYear;
     });
 
-    const monthlyExpense = monthlyItems.reduce((acc, item) => acc + (parseInt(item.jumlah) || 0), 0);
+    const monthlyItems = yearlyItems.filter(item => {
+        const date = parseDate(item.created_at);
+        return date.getMonth() === currentMonth;
+    });
 
-    // Rata-rata Harian
+    const yearlyTotal = yearlyItems.reduce((acc, item) => acc + (parseInt(item.jumlah) || 0), 0);
+    const monthlyTotal = monthlyItems.reduce((acc, item) => acc + (parseInt(item.jumlah) || 0), 0);
+
+    // Daily Average (Monthly)
     let dailyAverage = 0;
     if (monthlyItems.length > 0) {
         const activeDays = new Set();
@@ -246,18 +251,149 @@ function calculateSummary(data) {
             const date = parseDate(item.created_at);
             activeDays.add(date.toDateString());
         });
-        if (activeDays.size > 0) dailyAverage = monthlyExpense / activeDays.size;
+        if (activeDays.size > 0) dailyAverage = monthlyTotal / activeDays.size;
     }
 
-    // Update UI
-    document.getElementById('totalPengeluaran').textContent = formatRupiah(totalExpense);
-    document.getElementById('totalPengeluaranBulanIni').textContent = formatRupiah(monthlyExpense);
+    // Update Dashboard UI
+    document.getElementById('totalPengeluaran').textContent = formatRupiah(yearlyTotal);
+    document.getElementById('totalPengeluaranBulanIni').textContent = formatRupiah(monthlyTotal);
     document.getElementById('rataRataPengeluaranHarian').textContent = formatRupiah(dailyAverage);
+
+    // Store these for the stats modal
+    window.currentStats = { yearlyTotal, monthlyTotal, dailyAverage, monthlyItems };
+}
+
+let categoryChart = null;
+
+window.showAnalysis = function () {
+    const modal = document.getElementById('statsModal');
+    modal.style.display = 'flex';
+    requestAnimationFrame(() => modal.classList.add('show'));
+
+    document.getElementById('statsYearTotal').textContent = formatRupiah(window.currentStats.yearlyTotal);
+    document.getElementById('statsMonthTotal').textContent = formatRupiah(window.currentStats.monthlyTotal);
+    document.getElementById('statsDailyAvg').textContent = formatRupiah(window.currentStats.dailyAverage);
+
+    renderCategoryDetails();
+    renderCategoryChart();
+};
+
+window.closeStatsModal = function () {
+    const modal = document.getElementById('statsModal');
+    modal.classList.remove('show');
+    setTimeout(() => { modal.style.display = 'none'; }, 300);
+};
+
+function renderCategoryDetails() {
+    const container = document.getElementById('categoryDetails');
+    const items = window.currentStats.monthlyItems;
+
+    // Group by category
+    const breakdown = {};
+    const uncategorizedItems = items.filter(t => !t.kategori);
+    const hasUncategorized = uncategorizedItems.length > 0;
+
+    CATEGORIES.forEach(cat => breakdown[cat] = { amount: 0, count: 0 });
+    if (hasUncategorized) breakdown['Belum Ada Kategori'] = { amount: 0, count: 0 };
+
+    items.forEach(t => {
+        const cat = t.kategori || 'Belum Ada Kategori';
+        if (breakdown[cat]) {
+            breakdown[cat].amount += parseInt(t.jumlah) || 0;
+            breakdown[cat].count++;
+        }
+    });
+
+    const sorted = Object.entries(breakdown)
+        .filter(([_, data]) => data.count > 0)
+        .sort((a, b) => b[1].amount - a[1].amount);
+
+    container.innerHTML = sorted.map(([name, data]) => `
+        <div class="cat-detail-row" style="border-left-color: ${getCategoryColor(name)}">
+            <div class="cat-name-info">
+                <span class="cat-name">${name}</span>
+                <span class="cat-count">${data.count} Transaksi</span>
+            </div>
+            <div class="cat-amount-info">
+                <span class="cat-amount">- ${formatRupiah(data.amount)}</span>
+                <span class="cat-percent">${((data.amount / window.currentStats.monthlyTotal) * 100).toFixed(1)}%</span>
+            </div>
+        </div>
+    `).join('');
+}
+
+function renderCategoryChart() {
+    const ctx = document.getElementById('categoryChart').getContext('2d');
+    const items = window.currentStats.monthlyItems;
+    const breakdown = {};
+
+    items.forEach(t => {
+        const cat = t.kategori || 'Belum Ada Kategori';
+        breakdown[cat] = (breakdown[cat] || 0) + (parseInt(t.jumlah) || 0);
+    });
+
+    const labels = Object.keys(breakdown);
+    const data = Object.values(breakdown);
+    const colors = labels.map(l => getCategoryColor(l));
+
+    if (categoryChart) categoryChart.destroy();
+
+    categoryChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: labels,
+            datasets: [{
+                data: data,
+                backgroundColor: colors,
+                borderWidth: 0,
+                hoverOffset: 10
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        usePointStyle: true,
+                        padding: 20,
+                        font: { family: 'Outfit', size: 12 }
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function (context) {
+                            return ` ${context.label}: ${formatRupiah(context.raw)}`;
+                        }
+                    }
+                }
+            },
+            cutout: '70%'
+        }
+    });
+}
+
+function getCategoryColor(cat) {
+    const colors = {
+        "Kebutuhan Pokok": "#6366f1", // Indigo
+        "Kebutuhan Bayi": "#8b5cf6", // Purple
+        "Tempat Tinggal": "#f59e0b", // Amber
+        "Transportasi": "#10b981",    // Emerald
+        "Gaya Hidup & Hiburan": "#ec4899", // Pink
+        "Sosial & Tak Terduga": "#ef4444", // Red
+        "Belum Ada Kategori": "#94a3b8"   // Slate
+    };
+    return colors[cat] || "#cbd5e1";
 }
 
 function renderCategoryFilters() {
     const container = document.getElementById('categoryFilters');
-    const categories = ['Semua', 'Belum Ada Kategori', ...CATEGORIES];
+    const hasUncategorized = allTransactions.some(t => !t.kategori);
+
+    let categories = ['Semua'];
+    if (hasUncategorized) categories.push('Belum Ada Kategori');
+    categories = [...categories, ...CATEGORIES];
 
     container.innerHTML = categories.map(cat => `
         <div class="filter-chip ${currentCategoryFilter === cat ? 'active' : ''}" onclick="setCategoryFilter('${cat}')">
@@ -326,7 +462,7 @@ function renderTransactions(filtered = null) {
         let categoryOptions = CATEGORIES.map(c => `<option value="${c}" ${c === category ? 'selected' : ''}>${c}</option>`).join('');
         const categorySelector = `
             <div class="category-wrapper">
-                <select class="category-select ${category ? 'has-category' : ''}" onchange="updateCategory(${t.id}, this.value)">
+                <select class="category-select ${category ? 'has-category' : ''}" onchange="updateCategory(${t.id}, this.value, this)">
                     <option value="" disabled ${!category ? 'selected' : ''}>Pilih Kategori</option>
                     ${categoryOptions}
                 </select>
@@ -404,6 +540,11 @@ function setupEventListeners() {
 
     if (closeBtn) closeBtn.onclick = closeModal;
     modal.onclick = (e) => { if (e.target === modal) closeModal(); };
+
+    const statsModal = document.getElementById('statsModal');
+    if (statsModal) {
+        statsModal.onclick = (e) => { if (e.target === statsModal) closeStatsModal(); };
+    }
 
     // Scroll Control for Filters
     const scrollLeft = document.getElementById('scrollLeft');
@@ -483,7 +624,10 @@ function predictCategory(text) {
     return "";
 }
 
-async function updateCategory(id, category) {
+async function updateCategory(id, category, el) {
+    if (el) el.classList.add('loading');
+    showToast('Memperbarui kategori...', 'info');
+
     try {
         const response = await fetch(`${API_URL}?endpoint=api_update_kategori.php`, {
             method: 'POST',
@@ -492,16 +636,33 @@ async function updateCategory(id, category) {
 
         const res = await response.json();
         if (res.status === 'success') {
-            console.log('Category updated:', res);
-            // Update local data
             const tx = allTransactions.find(t => t.id == id);
             if (tx) tx.kategori = category;
             updateDisplay();
+            showToast('Kategori berhasil diperbarui', 'success');
         } else {
-            alert('Gagal mengupdate kategori: ' + res.message);
+            showToast('Gagal: ' + res.message, 'error');
         }
     } catch (error) {
         console.error('Update category failed:', error);
-        alert('Terjadi kesalahan saat mengupdate kategori');
+        showToast('Terjadi kesalahan jaringan', 'error');
+    } finally {
+        if (el) el.classList.remove('loading');
     }
+}
+
+let toastTimeout;
+function showToast(message, type = 'info') {
+    const toast = document.getElementById('toast');
+    if (!toast) return;
+
+    toast.textContent = message;
+    toast.className = `toast show ${type}`;
+    toast.classList.remove('hidden');
+
+    clearTimeout(toastTimeout);
+    toastTimeout = setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.classList.add('hidden'), 300);
+    }, 3000);
 }

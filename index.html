@@ -14,6 +14,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- CSS -->
     <link rel="stylesheet" href="styles.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body>
@@ -66,10 +68,13 @@
                     <p class="card-subtext"></p>
                 </div>
             </div>
-
-
-
         </section>
+
+        <div class="stats-action">
+            <button onclick="showAnalysis()" class="btn-stats">
+                <i class="fa-solid fa-chart-pie"></i> Analisis Detail Kategori
+            </button>
+        </div>
 
         <!-- Banner Card Removed -->
 
@@ -114,6 +119,43 @@
             <img class="modal-content" id="modalImage">
         </div>
         <div id="caption"></div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast hidden"></div>
+
+    <!-- Stats Modal -->
+    <div id="statsModal" class="modal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-chart-column"></i> Analisis Pengeluaran</h3>
+                <span class="close-stats" onclick="closeStatsModal()">&times;</span>
+            </div>
+            <div class="modal-scroll-content">
+                <div class="stats-summary-grid">
+                    <div class="mini-stat">
+                        <span class="label">Total Tahun Ini</span>
+                        <h4 id="statsYearTotal">Rp 0</h4>
+                    </div>
+                    <div class="mini-stat">
+                        <span class="label">Total Bulan Ini</span>
+                        <h4 id="statsMonthTotal">Rp 0</h4>
+                    </div>
+                    <div class="mini-stat">
+                        <span class="label">Rata-rata Harian</span>
+                        <h4 id="statsDailyAvg">Rp 0</h4>
+                    </div>
+                </div>
+
+                <div class="chart-container">
+                    <canvas id="categoryChart"></canvas>
+                </div>
+
+                <div id="categoryDetails" class="category-details-list">
+                    <!-- Detailed category rows will be injected here -->
+                </div>
+            </div>
+        </div>
     </div>
 
     <script src="app.js"></script>
