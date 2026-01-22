@@ -276,6 +276,29 @@ function calculateSummary() {
     document.getElementById('totalPengeluaran').textContent = formatRupiah(cardsYearlyTotal);
     document.getElementById('totalPengeluaranBulanIni').textContent = formatRupiah(cardsMonthlyTotal);
     document.getElementById('rataRataPengeluaranHarian').textContent = formatRupiah(cardsDailyAvg);
+
+    // Update Filter Labels in Cards
+    let filterText = '';
+    if (currentCategoryFilter !== 'Semua') {
+        filterText = `Filter: ${currentCategoryFilter}`;
+    }
+    if (searchVal) {
+        filterText = filterText ? `${filterText} + "${searchVal}"` : `Cari: "${searchVal}"`;
+    }
+
+    const filterElements = [
+        'totalPengeluaranFilter',
+        'totalPengeluaranBulanIniFilter',
+        'rataRataPengeluaranHarianFilter'
+    ];
+
+    filterElements.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.textContent = filterText;
+            el.style.opacity = filterText ? '1' : '0';
+        }
+    });
 }
 
 let categoryChart = null;
