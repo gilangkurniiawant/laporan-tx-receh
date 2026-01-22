@@ -18,6 +18,10 @@ const CATEGORIES = [
 
 const KEYWORDS = {
     "Kebutuhan Pokok": [
+        "tisu",
+        "yakult",
+        "nanas",
+        "pepaya",
         "kerupuk",
         "usus",
         "bawang",
@@ -67,6 +71,7 @@ const KEYWORDS = {
         "merries"
     ],
     "Tempat Tinggal": [
+        "keyboard",
         "cctv",
         "tukang",
         "tangga",
@@ -99,6 +104,7 @@ const KEYWORDS = {
         "tambal"
     ],
     "Gaya Hidup & Hiburan": [
+        "sate",
         "cilok",
         "pentol",
         "some",
@@ -130,6 +136,8 @@ const KEYWORDS = {
         "infak"
     ]
 };
+
+let currentCategoryFilter = 'Semua';
 
 document.addEventListener('DOMContentLoaded', () => {
     init();
@@ -164,8 +172,14 @@ async function init() {
         const json = await response.json();
 
         if (json.status === 'success') {
-            processData(json.data);
+            allTransactions = json.data.pengeluaran || [];
+            // Map categories to transactions if not already set
+            allTransactions.forEach(t => {
+                if (!t.kategori) t.kategori = predictCategory(t.keperluan || t.keterangan);
+            });
+
             isDataLoaded = true;
+            updateDisplay();
         } else {
             console.error('API Error:', json.message);
         }
@@ -177,18 +191,25 @@ async function init() {
     }
 }
 
-function processData(data) {
-    const pengeluaran = data.pengeluaran || [];
-    const saldo = data.saldo || {};
+function updateDisplay() {
+    const filtered = filterTransactions();
+    calculateSummary(filtered);
+    renderCategoryFilters();
+    currentPage = 1;
+    renderTransactions(filtered);
+}
 
-    // Update Totals
-    const totalPengeluaranEl = document.getElementById('totalPengeluaran');
-    if (totalPengeluaranEl) {
-        totalPengeluaranEl.textContent = saldo.total_pengeluaran !== undefined ? formatRupiah(saldo.total_pengeluaran) : 'Rp 0';
-    }
-    document.getElementById('totalTransaksiCount').textContent = pengeluaran.length;
+function filterTransactions() {
+    const searchVal = document.getElementById('searchInput').value.toLowerCase();
+    return allTransactions.filter(t => {
+        const matchesCategory = currentCategoryFilter === 'Semua' || t.kategori === currentCategoryFilter;
+        const text = (t.keperluan || t.keterangan || t.user_nama || '').toLowerCase();
+        const matchesSearch = text.includes(searchVal);
+        return matchesCategory && matchesSearch;
+    }).sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+}
 
-    // Filter data pengeluaran bulan ini
+function calculateSummary(data) {
     const now = new Date();
     const currentMonth = now.getMonth();
     const currentYear = now.getFullYear();
@@ -198,7 +219,9 @@ function processData(data) {
         return new Date(dateStr.replace(' ', 'T'));
     };
 
-    const monthlyItems = pengeluaran.filter(item => {
+    const totalExpense = data.reduce((acc, item) => acc + (parseInt(item.jumlah) || 0), 0);
+
+    const monthlyItems = data.filter(item => {
         const date = parseDate(item.created_at);
         return date.getMonth() === currentMonth && date.getFullYear() === currentYear;
     });
@@ -216,35 +239,49 @@ function processData(data) {
         if (activeDays.size > 0) dailyAverage = monthlyExpense / activeDays.size;
     }
 
+    // Update UI
+    document.getElementById('totalPengeluaran').textContent = formatRupiah(totalExpense);
+    document.getElementById('totalTransaksiCount').textContent = data.length;
     document.getElementById('totalPengeluaranBulanIni').textContent = formatRupiah(monthlyExpense);
     document.getElementById('rataRataPengeluaranHarian').textContent = formatRupiah(dailyAverage);
 
     // Last Transaction Banner
-    if (pengeluaran.length > 0) {
-        const last = pengeluaran[0];
+    if (data.length > 0) {
+        const last = data[0];
         document.getElementById('lastTransactionAmount').textContent = formatRupiah(last.jumlah);
         document.getElementById('lastTransactionDate').textContent = `${last.keperluan} • ${last.tanggal_formatted}`;
+    } else {
+        document.getElementById('lastTransactionAmount').textContent = 'Rp 0';
+        document.getElementById('lastTransactionDate').textContent = 'Tidak ada data';
     }
-
-    // Sort Transactions
-    allTransactions = [...pengeluaran].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-
-    currentPage = 1;
-    renderTransactions();
 }
 
-function renderTransactions() {
+function renderCategoryFilters() {
+    const container = document.getElementById('categoryFilters');
+    const categories = ['Semua', ...CATEGORIES];
+
+    container.innerHTML = categories.map(cat => `
+        <div class="filter-chip ${currentCategoryFilter === cat ? 'active' : ''}" onclick="setCategoryFilter('${cat}')">
+            ${cat}
+        </div>
+    `).join('');
+}
+
+window.setCategoryFilter = function (category) {
+    currentCategoryFilter = category;
+    updateDisplay();
+};
+
+function renderTransactions(filtered = null) {
     const listContainer = document.getElementById('transactionsList');
     const paginationContainer = document.getElementById('paginationControls');
-    const searchVal = document.getElementById('searchInput').value.toLowerCase();
+
+    if (!filtered) {
+        filtered = filterTransactions();
+    }
 
     listContainer.innerHTML = '';
     paginationContainer.classList.add('hidden');
-
-    const filtered = allTransactions.filter(t => {
-        const text = (t.keperluan || t.keterangan || t.user_nama || '').toLowerCase();
-        return text.includes(searchVal);
-    });
 
     if (filtered.length === 0) {
         listContainer.innerHTML = `
@@ -353,8 +390,7 @@ function renderPaginationControls(totalPages) {
 
 function setupEventListeners() {
     document.getElementById('searchInput').addEventListener('input', () => {
-        currentPage = 1;
-        renderTransactions();
+        updateDisplay();
     });
 
     const modal = document.getElementById('imageModal');
@@ -430,7 +466,10 @@ async function updateCategory(id, category) {
         const res = await response.json();
         if (res.status === 'success') {
             console.log('Category updated:', res);
-            // Optional: Show toast
+            // Update local data
+            const tx = allTransactions.find(t => t.id == id);
+            if (tx) tx.kategori = category;
+            updateDisplay();
         } else {
             alert('Gagal mengupdate kategori: ' + res.message);
         }
