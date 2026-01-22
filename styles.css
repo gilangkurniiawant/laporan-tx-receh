@@ -866,29 +866,79 @@ body {
 
 .cat-detail-row {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 16px;
+    flex-direction: column;
+    padding: 0;
     background: #f8fafc;
     border-radius: 12px;
     border-left: 4px solid var(--accent-purple);
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.3s ease;
 }
 
-.cat-name-info {
+.cat-row-main {
     display: flex;
-    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
 }
 
-.cat-name {
-    font-weight: 600;
-    font-size: 0.9rem;
+.cat-detail-row:hover {
+    background: #f1f5f9;
+}
+
+.cat-detail-table {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    background: white;
+}
+
+.cat-detail-row.open .cat-detail-table {
+    max-height: 1000px;
+    border-top: 1px solid var(--border-color);
+}
+
+.mini-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8rem;
+}
+
+.mini-table tr {
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.mini-table tr:last-child {
+    border-bottom: none;
+}
+
+.mini-table td {
+    padding: 8px 16px;
     color: var(--text-primary);
 }
 
-.cat-amount {
-    font-weight: 700;
-    font-size: 0.95rem;
+.mini-table .td-price {
+    text-align: right;
+    font-weight: 600;
     color: #ef4444;
+}
+
+.mini-table .td-date {
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    width: 60px;
+}
+
+.cat-row-main i.fa-chevron-down {
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    transition: transform 0.3s;
+    margin-left: 10px;
+}
+
+.cat-detail-row.open i.fa-chevron-down {
+    transform: rotate(180deg);
 }
 
 .app-footer {

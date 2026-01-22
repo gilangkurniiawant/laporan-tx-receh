@@ -326,38 +326,54 @@ function renderCategoryDetails() {
     const container = document.getElementById('categoryDetails');
     const items = window.currentStats.monthlyItems;
 
-    // Group by category
-    const breakdown = {};
-    const uncategorizedItems = items.filter(t => !t.kategori);
-    const hasUncategorized = uncategorizedItems.length > 0;
-
-    CATEGORIES.forEach(cat => breakdown[cat] = { amount: 0, count: 0 });
-    if (hasUncategorized) breakdown['Belum Ada Kategori'] = { amount: 0, count: 0 };
+    // Group items by category for breakdown
+    const itemsByCategory = {};
+    CATEGORIES.forEach(cat => itemsByCategory[cat] = []);
+    itemsByCategory['Belum Ada Kategori'] = [];
 
     items.forEach(t => {
         const cat = t.kategori || 'Belum Ada Kategori';
-        if (breakdown[cat]) {
-            breakdown[cat].amount += parseInt(t.jumlah) || 0;
-            breakdown[cat].count++;
-        }
+        if (itemsByCategory[cat]) itemsByCategory[cat].push(t);
     });
 
-    const sorted = Object.entries(breakdown)
-        .filter(([_, data]) => data.count > 0)
-        .sort((a, b) => b[1].amount - a[1].amount);
+    const breakdown = Object.entries(itemsByCategory)
+        .map(([name, catItems]) => ({
+            name,
+            items: catItems,
+            total: catItems.reduce((sum, i) => sum + (parseInt(i.jumlah) || 0), 0)
+        }))
+        .filter(b => b.items.length > 0)
+        .sort((a, b) => b.total - a.total);
 
-    container.innerHTML = sorted.map(([name, data]) => `
-        <div class="cat-detail-row" style="border-left-color: ${getCategoryColor(name)}">
-            <div class="cat-name-info">
-                <span class="cat-name">${name}</span>
-                <span class="cat-count">${data.count} Transaksi</span>
+    container.innerHTML = breakdown.map(b => {
+        const tableRows = b.items.map(t => `
+            <tr>
+                <td class="td-date">${t.tanggal_formatted.split(',')[0]}</td>
+                <td>${t.keperluan || t.keterangan || 'Tanpa Keterangan'}</td>
+                <td class="td-price">${formatRupiah(t.jumlah)}</td>
+            </tr>
+        `).join('');
+
+        return `
+            <div class="cat-detail-row" onclick="this.classList.toggle('open')" style="border-left-color: ${getCategoryColor(b.name)}">
+                <div class="cat-row-main">
+                    <div class="cat-name-info">
+                        <span class="cat-name">${b.name}</span>
+                        <span class="cat-count">${b.items.length} Transaksi</span>
+                    </div>
+                    <div class="cat-amount-info">
+                        <span class="cat-amount">- ${formatRupiah(b.total)}</span>
+                        <span class="cat-percent">${((b.total / window.currentStats.monthlyTotal) * 100).toFixed(1)}% <i class="fa-solid fa-chevron-down"></i></span>
+                    </div>
+                </div>
+                <div class="cat-detail-table">
+                    <table class="mini-table">
+                        ${tableRows}
+                    </table>
+                </div>
             </div>
-            <div class="cat-amount-info">
-                <span class="cat-amount">- ${formatRupiah(data.amount)}</span>
-                <span class="cat-percent">${((data.amount / window.currentStats.monthlyTotal) * 100).toFixed(1)}%</span>
-            </div>
-        </div>
-    `).join('');
+        `;
+    }).join('');
 }
 
 function renderCategoryChart() {
