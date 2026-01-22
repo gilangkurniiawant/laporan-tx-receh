@@ -294,19 +294,53 @@ body {
     font-size: 0.9rem;
 }
 
+.filter-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    margin: 5px -20px 20px -20px;
+    padding: 0 10px;
+}
+
 .filter-container {
     display: flex;
     gap: 10px;
     overflow-x: auto;
-    padding: 5px 0 20px 0;
-    margin-bottom: 10px;
+    padding: 10px 10px 20px 10px;
     scrollbar-width: none;
     -ms-overflow-style: none;
+    scroll-behavior: smooth;
+    flex: 1;
 }
 
 .filter-container::-webkit-scrollbar {
     display: none;
 }
+
+.scroll-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: white;
+    border: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: var(--shadow-sm);
+    z-index: 10;
+    color: var(--text-secondary);
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+
+.scroll-btn:hover {
+    color: var(--accent-purple);
+    border-color: var(--accent-purple-light);
+}
+
+.scroll-btn.left { margin-right: -5px; }
+.scroll-btn.right { margin-left: -5px; }
 
 .filter-chip {
     padding: 10px 18px;

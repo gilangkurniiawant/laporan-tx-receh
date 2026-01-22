@@ -202,7 +202,15 @@ function updateDisplay() {
 function filterTransactions() {
     const searchVal = document.getElementById('searchInput').value.toLowerCase();
     return allTransactions.filter(t => {
-        const matchesCategory = currentCategoryFilter === 'Semua' || t.kategori === currentCategoryFilter;
+        let matchesCategory = false;
+        if (currentCategoryFilter === 'Semua') {
+            matchesCategory = true;
+        } else if (currentCategoryFilter === 'Belum Ada Kategori') {
+            matchesCategory = !t.kategori;
+        } else {
+            matchesCategory = t.kategori === currentCategoryFilter;
+        }
+
         const text = (t.keperluan || t.keterangan || t.user_nama || '').toLowerCase();
         const matchesSearch = text.includes(searchVal);
         return matchesCategory && matchesSearch;
@@ -258,7 +266,7 @@ function calculateSummary(data) {
 
 function renderCategoryFilters() {
     const container = document.getElementById('categoryFilters');
-    const categories = ['Semua', ...CATEGORIES];
+    const categories = ['Semua', 'Belum Ada Kategori', ...CATEGORIES];
 
     container.innerHTML = categories.map(cat => `
         <div class="filter-chip ${currentCategoryFilter === cat ? 'active' : ''}" onclick="setCategoryFilter('${cat}')">
@@ -403,6 +411,16 @@ function setupEventListeners() {
 
     if (closeBtn) closeBtn.onclick = closeModal;
     modal.onclick = (e) => { if (e.target === modal) closeModal(); };
+
+    // Scroll Control for Filters
+    const scrollLeft = document.getElementById('scrollLeft');
+    const scrollRight = document.getElementById('scrollRight');
+    const filterContainer = document.getElementById('categoryFilters');
+
+    if (scrollLeft && scrollRight && filterContainer) {
+        scrollLeft.onclick = () => filterContainer.scrollBy({ left: -200, behavior: 'smooth' });
+        scrollRight.onclick = () => filterContainer.scrollBy({ left: 200, behavior: 'smooth' });
+    }
 }
 
 function formatRupiah(num) {
