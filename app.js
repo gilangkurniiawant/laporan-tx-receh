@@ -349,7 +349,7 @@ function renderTransactions(filtered = null) {
                 <span class="t-date">${t.tanggal_formatted}</span>
                 <div class="t-meta-right">
                     ${categorySelector}
-                    ${t.status ? `<div class="t-status status-${t.status.toLowerCase()}">${t.status}</div>` : ''}
+                    ${t.status && t.status.toLowerCase() !== 'approved' ? `<div class="t-status status-${t.status.toLowerCase()}">${t.status}</div>` : ''}
                 </div>
             </div>
         `;
