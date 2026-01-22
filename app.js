@@ -674,3 +674,13 @@ function showToast(message, type = 'info') {
         setTimeout(() => toast.classList.add('hidden'), 300);
     }, 3000);
 }
+
+// Prevent Double-Tap Zoom on iOS
+let lastTouchEnd = 0;
+document.addEventListener('touchend', (event) => {
+    const now = (new Date()).getTime();
+    if (now - lastTouchEnd <= 300) {
+        event.preventDefault();
+    }
+    lastTouchEnd = now;
+}, false);
