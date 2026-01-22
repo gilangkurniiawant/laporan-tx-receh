@@ -345,8 +345,52 @@ body {
     color: var(--accent-indigo);
     font-size: 0.8rem;
     font-weight: 500;
-    margin-top: 4px;
     cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.t-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 6px;
+    flex-wrap: wrap;
+}
+
+.category-wrapper {
+    position: relative;
+}
+
+.category-select {
+    appearance: none;
+    -webkit-appearance: none;
+    background: #f8fafc;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 4px 24px 4px 8px;
+    font-size: 0.75rem;
+    font-family: inherit;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2371767b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 6px center;
+    background-size: 12px;
+}
+
+.category-select:hover {
+    border-color: var(--accent-purple-light);
+    background-color: #fff;
+}
+
+.category-select.has-category {
+    background-color: #eef2ff;
+    color: var(--accent-indigo);
+    border-color: #c7d2fe;
+    font-weight: 500;
 }
 
 .t-right {

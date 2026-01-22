@@ -16,23 +16,33 @@ export default async function handler(req, res) {
         return;
     }
 
-    // URL API yang disembunyikan (tidak terlihat di frontend)
-    const API_URL = 'https://core.akun.vip/apps/receh/api_laporan_lengkap.php';
+    // URL API yang dinamis
+    const endpoint = req.query.endpoint || 'api_laporan_lengkap.php';
+    const API_URL = `https://core.akun.vip/apps/receh/${endpoint}`;
 
     try {
         // Create AbortController untuk timeout
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 detik timeout
 
-        // Fetch dari API backend
-        const response = await fetch(API_URL, {
-            method: 'GET',
+        // Persiapkan options untuk fetch
+        const fetchOptions = {
+            method: req.method,
             headers: {
                 'Accept': 'application/json',
                 'User-Agent': 'RECEH-Laporan-Client/1.0'
             },
             signal: controller.signal
-        });
+        };
+
+        // Jika ada body (POST/PUT), teruskan
+        if (['POST', 'PUT', 'PATCH'].includes(req.method) && req.body) {
+            fetchOptions.body = typeof req.body === 'string' ? req.body : JSON.stringify(req.body);
+            fetchOptions.headers['Content-Type'] = 'application/json';
+        }
+
+        // Fetch dari API backend
+        const response = await fetch(API_URL, fetchOptions);
 
         clearTimeout(timeoutId);
 

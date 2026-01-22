@@ -7,6 +7,24 @@ let isDataLoaded = false;
 let currentPage = 1;
 const itemsPerPage = 10;
 
+const CATEGORIES = [
+    "Kebutuhan Pokok",
+    "Kebutuhan Bayi",
+    "Tempat Tinggal",
+    "Transportasi",
+    "Gaya Hidup & Hiburan",
+    "Sosial & Tak Terduga"
+];
+
+const KEYWORDS = {
+    "Kebutuhan Pokok": ["beras", "minyak", "telur", "sayur", "lauk", "bumbu", "belanja bulanan", "pasar", "alfamart", "indomaret", "makan", "nasi", "galon", "aqua"],
+    "Kebutuhan Bayi": ["pampers", "susu bayi", "popok", "bubur bayi", "diaper", "mamy poko", "sweety", "merries"],
+    "Tempat Tinggal": ["listrik", "air", "token", "sampah", "iuran", "pbb", "sewa", "kost", "wifi", "indihome"],
+    "Transportasi": ["bensin", "pertalite", "pertamax", "ojek", "grab", "gojek", "parkir", "service", "ganti oli", "ban", "tambal"],
+    "Gaya Hidup & Hiburan": ["cilok", "seblak", "kopi", "jajan", "nonton", "netflix", "boker", "topup", "game", "shopee", "tiktok", "pulsa"],
+    "Sosial & Tak Terduga": ["sumbangan", "kondangan", "sedekah", "obat", "sakit", "darurat", "rumah sakit", "apotek", "infak"]
+};
+
 document.addEventListener('DOMContentLoaded', () => {
     init();
     setupEventListeners();
@@ -158,13 +176,31 @@ function renderTransactions() {
 
         const item = document.createElement('div');
         item.className = 'transaction-item';
+
+        // AI Categorization Logic
+        let category = t.kategori || predictCategory(t.keperluan || t.keterangan);
+
+        // Category Selector UI
+        let categoryOptions = CATEGORIES.map(c => `<option value="${c}" ${c === category ? 'selected' : ''}>${c}</option>`).join('');
+        const categorySelector = `
+            <div class="category-wrapper">
+                <select class="category-select ${category ? 'has-category' : ''}" onchange="updateCategory(${t.id}, this.value)">
+                    <option value="" disabled ${!category ? 'selected' : ''}>Pilih Kategori</option>
+                    ${categoryOptions}
+                </select>
+            </div>
+        `;
+
         item.innerHTML = `
             <div class="t-left">
                 <div class="t-icon"><i class="fa-solid fa-receipt"></i></div>
                 <div class="t-details">
                     <h4>${title}</h4>
                     <p>${user}</p>
-                    ${imageBtn}
+                    <div class="t-meta">
+                        ${imageBtn}
+                        ${categorySelector}
+                    </div>
                 </div>
             </div>
             <div class="t-right">
@@ -264,4 +300,36 @@ window.showImage = function (url, caption) {
     requestAnimationFrame(() => modal.classList.add('show'));
     captionText.textContent = caption;
     modalImg.src = url;
+}
+
+function predictCategory(text) {
+    if (!text) return "";
+    text = text.toLowerCase();
+
+    for (const [category, keywords] of Object.entries(KEYWORDS)) {
+        if (keywords.some(kw => text.includes(kw))) {
+            return category;
+        }
+    }
+    return "";
+}
+
+async function updateCategory(id, category) {
+    try {
+        const response = await fetch(`${API_URL}?endpoint=api_update_kategori.php`, {
+            method: 'POST',
+            body: JSON.stringify({ id, kategori: category })
+        });
+
+        const res = await response.json();
+        if (res.status === 'success') {
+            console.log('Category updated:', res);
+            // Optional: Show toast
+        } else {
+            alert('Gagal mengupdate kategori: ' + res.message);
+        }
+    } catch (error) {
+        console.error('Update category failed:', error);
+        alert('Terjadi kesalahan saat mengupdate kategori');
+    }
 }
