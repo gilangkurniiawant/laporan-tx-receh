@@ -937,8 +937,23 @@ body {
 }
 
 .cat-detail-row.open .cat-detail-table {
-    max-height: 1000px;
+    max-height: 400px; /* Limit height and enable scroll */
+    overflow-y: auto;
     border-top: 1px solid var(--border-color);
+}
+
+/* Slim scrollbar for the mini table */
+.cat-detail-table::-webkit-scrollbar {
+    width: 4px;
+}
+
+.cat-detail-table::-webkit-scrollbar-track {
+    background: #f1f5f9;
+}
+
+.cat-detail-table::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
 }
 
 .mini-table {
