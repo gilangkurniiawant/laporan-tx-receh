@@ -11,6 +11,7 @@ const itemsPerPage = 10;
 let currentPeriod = 'bulan'; // 'hari', 'bulan', 'tahun'
 let selectedYear = new Date().getFullYear();
 let selectedMonth = new Date().getMonth() + 1; // 1-indexed
+let currentHiddenCategories = new Set();
 
 const MONTHS_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
 
@@ -400,11 +401,9 @@ window.showAnalysis = function () {
     modal.style.display = 'flex';
     requestAnimationFrame(() => modal.classList.add('show'));
 
-    document.getElementById('statsYearTotal').textContent = formatRupiah(window.currentStats.yearlyTotal);
-    document.getElementById('statsMonthTotal').textContent = formatRupiah(window.currentStats.monthlyTotal);
-    document.getElementById('statsDailyAvg').textContent = formatRupiah(window.currentStats.dailyAverage);
+    currentHiddenCategories.clear(); // Reset hidden categories when opening
 
-    renderCategoryDetails();
+    updateAnalysisUI();
     renderCategoryChart();
 };
 
@@ -414,22 +413,57 @@ window.closeStatsModal = function () {
     setTimeout(() => { modal.style.display = 'none'; }, 300);
 };
 
-function renderCategoryDetails() {
+function updateAnalysisUI() {
+    if (!window.currentStats) return;
+
+    const allItems = window.currentStats.monthlyItems;
+    const filteredItems = allItems.filter(t => {
+        const cat = t.kategori || 'Belum Ada Kategori';
+        return !currentHiddenCategories.has(cat);
+    });
+
+    const total = filteredItems.reduce((acc, item) => acc + (parseInt(item.jumlah) || 0), 0);
+
+    // Calculate new average based on filtered total
+    const now = new Date();
+    let divisor = 1;
+    if (currentPeriod === 'bulan') {
+        if (selectedMonth == (now.getMonth() + 1) && selectedYear == now.getFullYear()) {
+            divisor = now.getDate();
+        } else {
+            divisor = new Date(selectedYear, selectedMonth, 0).getDate();
+        }
+    } else if (currentPeriod === 'tahun') {
+        divisor = 12;
+    }
+
+    const dailyAvg = total / divisor;
+
+    document.getElementById('statsYearTotal').textContent = formatRupiah(window.currentStats.yearlyTotal);
+    document.getElementById('statsMonthTotal').textContent = formatRupiah(total);
+    document.getElementById('statsDailyAvg').textContent = formatRupiah(dailyAvg);
+
+    renderCategoryDetails(filteredItems, total);
+}
+
+function renderCategoryDetails(items = null, total = null) {
     const container = document.getElementById('categoryDetails');
     if (!container) return;
 
-    if (!window.currentStats || !window.currentStats.monthlyItems || window.currentStats.monthlyItems.length === 0) {
+    if (!items) items = window.currentStats.monthlyItems;
+    if (total === null) total = window.currentStats.monthlyTotal || 1;
+
+    if (items.length === 0) {
         container.innerHTML = `
             <div style="text-align: center; padding: 30px; color: var(--text-secondary); opacity: 0.6;">
                 <i class="fa-solid fa-chart-pie" style="font-size: 2rem; margin-bottom: 10px;"></i>
-                <p>Belum ada data pengeluaran bulan ini.</p>
+                <p>Tidak ada data untuk kategori yang terpilih.</p>
             </div>
         `;
         return;
     }
 
-    const items = window.currentStats.monthlyItems;
-    const monthlyTotal = window.currentStats.monthlyTotal || 1;
+    const displayTotal = total || 1;
 
     // Group items by category for breakdown
     const itemsByCategory = {};
@@ -531,6 +565,25 @@ function renderCategoryChart() {
                         usePointStyle: true,
                         padding: 20,
                         font: { family: 'Outfit', size: 12 }
+                    },
+                    onClick: function (e, legendItem, legend) {
+                        const index = legendItem.index;
+                        const label = legend.chart.data.labels[index];
+                        const ci = legend.chart;
+
+                        // Toggle visibility
+                        const isVisible = ci.getDataVisibility(index);
+                        ci.setDataVisibility(index, !isVisible);
+
+                        // Update our state
+                        if (isVisible) {
+                            currentHiddenCategories.add(label);
+                        } else {
+                            currentHiddenCategories.delete(label);
+                        }
+
+                        ci.update();
+                        updateAnalysisUI(); // Refresh list and stats in modal
                     }
                 },
                 tooltip: {
