@@ -448,6 +448,29 @@ function updateAnalysisUI() {
 
     const dailyAvg = activeTotal / (divisor || 1);
 
+    const isCurrentYear = selectedYear === now.getFullYear();
+    const isCurrentMonth = isCurrentYear && selectedMonth === (now.getMonth() + 1);
+    const monthNameLong = MONTHS_LONG[selectedMonth - 1];
+
+    // Dynamic Labels for Modal
+    const modalTitle = currentPeriod === 'hari' ? `Analisis ${now.getDate()} ${monthNameLong}` :
+        currentPeriod === 'tahun' ? `Analisis Tahun ${selectedYear}` :
+            `Analisis ${monthNameLong} ${selectedYear}`;
+
+    const yearlyLabel = isCurrentYear ? 'Total Tahun Ini' : `Total Tahun ${selectedYear}`;
+    const periodLabel = currentPeriod === 'hari' ? 'Total Hari Ini' :
+        currentPeriod === 'tahun' ? 'Total Tahun Ini' :
+            (isCurrentMonth ? 'Total Bulan Ini' : `Total ${monthNameLong}`);
+
+    // Update labels in Modal
+    const modalHeader = document.querySelector('#statsModal h3');
+    if (modalHeader) modalHeader.innerHTML = `<i class="fa-solid fa-chart-column"></i> ${modalTitle}`;
+
+    const yearStatLabel = document.querySelector('#statsModal .mini-stat:nth-child(1) .label');
+    const periodStatLabel = document.querySelector('#statsModal .mini-stat:nth-child(2) .label');
+    if (yearStatLabel) yearStatLabel.textContent = yearlyLabel;
+    if (periodStatLabel) periodStatLabel.textContent = periodLabel;
+
     document.getElementById('statsYearTotal').textContent = formatRupiah(window.currentStats.yearlyTotal);
     document.getElementById('statsMonthTotal').textContent = formatRupiah(activeTotal);
     document.getElementById('statsDailyAvg').textContent = formatRupiah(dailyAvg);
