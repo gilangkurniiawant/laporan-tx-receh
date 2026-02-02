@@ -343,9 +343,9 @@ function calculateSummary() {
 
     // Label updates based on period
     const labels = {
-        hari: { total: `Tahun Ini ${infoYear}`, sub: `Hari Ini ${infoDay}`, avg: `Rata-rata Hari Ini ${infoDay}` },
-        bulan: { total: `Tahun Ini ${infoYear}`, sub: `Bulan Ini ${infoMonth}`, avg: isCurrentMonth ? `Rata-rata Harian ${infoMonth}` : `Rata-rata Harian ${infoMonth}` },
-        tahun: { total: `Tahun Ini ${infoYear}`, sub: `Tahun Ini ${infoYear}`, avg: `Rata-rata Bulanan ${infoYear}` }
+        hari: { total: `Tahun  ${infoYear}`, sub: `Hari  ${infoDay}`, avg: `Rata-rata Hari  ${infoDay}` },
+        bulan: { total: `Tahun  ${infoYear}`, sub: `Bulan  ${infoMonth}`, avg: isCurrentMonth ? `Rata-rata Harian ${infoMonth}` : `Rata-rata Harian ${infoMonth}` },
+        tahun: { total: `Tahun  ${infoYear}`, sub: `Tahun  ${infoYear}`, avg: `Rata-rata Bulanan ${infoYear}` }
     };
     const currentLabels = labels[currentPeriod] || labels.bulan;
 
