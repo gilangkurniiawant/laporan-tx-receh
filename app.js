@@ -424,14 +424,14 @@ function updateAnalysisUI() {
     if (!window.currentStats) return;
 
     const allItems = window.currentStats.monthlyItems;
-    const filteredItems = allItems.filter(t => {
+    const activeItems = allItems.filter(t => {
         const cat = t.kategori || 'Belum Ada Kategori';
         return !currentHiddenCategories.has(cat);
     });
 
-    const total = filteredItems.reduce((acc, item) => acc + (parseInt(item.jumlah) || 0), 0);
+    const activeTotal = activeItems.reduce((acc, item) => acc + (parseInt(item.jumlah) || 0), 0);
 
-    // Calculate new average based on filtered total
+    // Calculate new average based on active total
     const now = new Date();
     let divisor = 1;
     if (currentPeriod === 'bulan') {
@@ -444,47 +444,35 @@ function updateAnalysisUI() {
         divisor = 12;
     }
 
-    const dailyAvg = total / divisor;
+    const dailyAvg = activeTotal / (divisor || 1);
 
     document.getElementById('statsYearTotal').textContent = formatRupiah(window.currentStats.yearlyTotal);
-    document.getElementById('statsMonthTotal').textContent = formatRupiah(total);
+    document.getElementById('statsMonthTotal').textContent = formatRupiah(activeTotal);
     document.getElementById('statsDailyAvg').textContent = formatRupiah(dailyAvg);
 
-    renderCategoryDetails(filteredItems, total);
+    renderCategoryDetails(allItems, activeTotal);
 }
 
-function renderCategoryDetails(items = null, total = null) {
+function renderCategoryDetails(items, activeTotal) {
     const container = document.getElementById('categoryDetails');
     if (!container) return;
 
-    if (!items) items = window.currentStats.monthlyItems;
-    if (total === null) total = window.currentStats.monthlyTotal || 1;
-
-    if (items.length === 0) {
-        container.innerHTML = `
-            <div style="text-align: center; padding: 30px; color: var(--text-secondary); opacity: 0.6;">
-                <i class="fa-solid fa-chart-pie" style="font-size: 2rem; margin-bottom: 10px;"></i>
-                <p>Tidak ada data untuk kategori yang terpilih.</p>
-            </div>
-        `;
+    if (!items || items.length === 0) {
+        container.innerHTML = `<div class="no-data-msg">Belum ada data pengeluaran.</div>`;
         return;
     }
 
-    const displayTotal = total || 1;
+    const displayTotal = activeTotal || 1;
 
-    // Group items by category for breakdown
+    // Group all items by category
     const itemsByCategory = {};
     CATEGORIES.forEach(cat => itemsByCategory[cat] = []);
     itemsByCategory['Belum Ada Kategori'] = [];
 
     items.forEach(t => {
         const cat = t.kategori || 'Belum Ada Kategori';
-        if (itemsByCategory[cat]) {
-            itemsByCategory[cat].push(t);
-        } else {
-            if (!itemsByCategory[cat]) itemsByCategory[cat] = [];
-            itemsByCategory[cat].push(t);
-        }
+        if (!itemsByCategory[cat]) itemsByCategory[cat] = [];
+        itemsByCategory[cat].push(t);
     });
 
     const breakdown = Object.entries(itemsByCategory)
@@ -497,43 +485,57 @@ function renderCategoryDetails(items = null, total = null) {
         .sort((a, b) => b.total - a.total);
 
     container.innerHTML = breakdown.map(b => {
-        const tableRows = b.items.map(t => {
-            const dateStr = t.tanggal_formatted ? t.tanggal_formatted.split(',')[0] : '?';
-            const desc = t.keperluan || t.keterangan || 'Pengeluaran';
-            return `
-                <tr>
-                    <td class="td-date">${dateStr}</td>
-                    <td>${desc}</td>
-                    <td class="td-price">${formatRupiah(t.jumlah)}</td>
-                </tr>
-            `;
-        }).join('');
+        const isHidden = currentHiddenCategories.has(b.name);
+        const percent = isHidden ? '0' : ((b.total / displayTotal) * 100).toFixed(1);
 
-        const percent = ((b.total / displayTotal) * 100).toFixed(1);
+        const tableRows = b.items.map(t => `
+            <tr>
+                <td class="td-date">${t.tanggal_formatted ? t.tanggal_formatted.split(',')[0] : '?'}</td>
+                <td>${t.keperluan || t.keterangan || 'Pengeluaran'}</td>
+                <td class="td-price">${formatRupiah(t.jumlah)}</td>
+            </tr>
+        `).join('');
 
         return `
-            <div class="cat-detail-row" onclick="this.classList.toggle('open')" style="border-left-color: ${getCategoryColor(b.name)}">
-                <div class="cat-row-main">
+            <div class="cat-detail-row ${isHidden ? 'strikethrough' : ''}" data-cat="${b.name}" style="border-left-color: ${getCategoryColor(b.name)}">
+                <div class="cat-row-main" onclick="toggleCategoryVisibility('${b.name}')">
                     <div class="cat-name-info">
                         <span class="cat-name">${b.name}</span>
                         <span class="cat-count">${b.items.length} Transaksi</span>
                     </div>
                     <div class="cat-amount-info">
-                        <span class="cat-amount">- ${formatRupiah(b.total)}</span>
-                        <span class="cat-percent">${percent}% <i class="fa-solid fa-chevron-down"></i></span>
+                        <span class="cat-amount">${isHidden ? '' : '-'} ${formatRupiah(b.total)}</span>
+                        <span class="cat-percent">${percent}% <i class="fa-solid fa-chevron-down" onclick="event.stopPropagation(); this.closest('.cat-detail-row').classList.toggle('open')"></i></span>
                     </div>
                 </div>
                 <div class="cat-detail-table">
                     <table class="mini-table">
-                        <tbody>
-                            ${tableRows}
-                        </tbody>
+                        <tbody>${tableRows}</tbody>
                     </table>
                 </div>
             </div>
         `;
     }).join('');
 }
+
+window.toggleCategoryVisibility = function (categoryName) {
+    if (!categoryChart) return;
+
+    const index = categoryChart.data.labels.indexOf(categoryName);
+    if (index === -1) return;
+
+    const isVisible = categoryChart.getDataVisibility(index);
+    categoryChart.setDataVisibility(index, !isVisible);
+
+    if (isVisible) {
+        currentHiddenCategories.add(categoryName);
+    } else {
+        currentHiddenCategories.delete(categoryName);
+    }
+
+    categoryChart.update();
+    updateAnalysisUI();
+};
 
 function renderCategoryChart() {
     const ctx = document.getElementById('categoryChart').getContext('2d');
@@ -574,23 +576,8 @@ function renderCategoryChart() {
                         font: { family: 'Outfit', size: 12 }
                     },
                     onClick: function (e, legendItem, legend) {
-                        const index = legendItem.index;
-                        const label = legend.chart.data.labels[index];
-                        const ci = legend.chart;
-
-                        // Toggle visibility
-                        const isVisible = ci.getDataVisibility(index);
-                        ci.setDataVisibility(index, !isVisible);
-
-                        // Update our state
-                        if (isVisible) {
-                            currentHiddenCategories.add(label);
-                        } else {
-                            currentHiddenCategories.delete(label);
-                        }
-
-                        ci.update();
-                        updateAnalysisUI(); // Refresh list and stats in modal
+                        const label = legend.chart.data.labels[legendItem.index];
+                        window.toggleCategoryVisibility(label);
                     }
                 },
                 tooltip: {

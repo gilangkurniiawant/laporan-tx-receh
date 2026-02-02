@@ -1218,3 +1218,18 @@ body {
 .apply-btn:active {
     transform: scale(0.98);
 }
+
+/* Analysis Strikethrough */
+.cat-detail-row.strikethrough {
+    opacity: 0.5;
+}
+.cat-detail-row.strikethrough .cat-name,
+.cat-detail-row.strikethrough .cat-amount {
+    text-decoration: line-through;
+}
+.cat-detail-row.strikethrough .cat-percent {
+    color: var(--text-secondary);
+}
+.cat-detail-row.strikethrough .cat-row-main {
+    background: rgba(0, 0, 0, 0.02);
+}
