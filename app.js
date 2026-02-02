@@ -523,7 +523,7 @@ window.toggleCategoryVisibility = function (categoryName) {
     if (index === -1) return;
 
     const isVisible = categoryChart.getDataVisibility(index);
-    categoryChart.setDataVisibility(index, !isVisible);
+    categoryChart.toggleDataVisibility(index);
 
     if (isVisible) {
         currentHiddenCategories.add(categoryName);
