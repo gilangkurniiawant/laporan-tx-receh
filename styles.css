@@ -1197,6 +1197,14 @@ body {
     box-shadow: 0 4px 10px rgba(79, 70, 229, 0.2);
 }
 
+.picker-item.disabled {
+    opacity: 0.25;
+    pointer-events: none;
+    background: #f8fafc;
+    color: #94a3b8;
+    border-color: transparent;
+}
+
 .date-picker-footer {
     padding: 24px;
 }

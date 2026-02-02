@@ -257,15 +257,26 @@ function renderDatePickerGrids() {
     const monthsGrid = document.getElementById('monthsGrid');
     const yearsGrid = document.getElementById('yearsGrid');
 
-    monthsGrid.innerHTML = MONTHS_SHORT.map((m, i) => `
-        <div class="picker-item ${tempSelectedMonth === i + 1 ? 'active' : ''}" onclick="selectMonth(${i + 1})">${m}</div>
+    // Get available filters from API
+    const filters = (apiSummary && apiSummary.available_filters) ? apiSummary.available_filters : {};
+    const availableYears = Object.keys(filters).map(Number).sort((a, b) => b - a);
+
+    // Render Years (only those with data)
+    yearsGrid.innerHTML = availableYears.map(y => `
+        <div class="picker-item ${tempSelectedYear === y ? 'active' : ''}" 
+             onclick="selectYear(${y})">${y}</div>
     `).join('');
 
-    const currentYear = new Date().getFullYear();
-    const years = [currentYear - 2, currentYear - 1, currentYear];
-    yearsGrid.innerHTML = years.map(y => `
-        <div class="picker-item ${tempSelectedYear === y ? 'active' : ''}" onclick="selectYear(${y})">${y}</div>
-    `).join('');
+    // Render Months (restrict based on selected year)
+    const availableMonths = filters[tempSelectedYear] || [];
+    monthsGrid.innerHTML = MONTHS_SHORT.map((m, i) => {
+        const monthNum = i + 1;
+        const isDisabled = !availableMonths.includes(monthNum);
+        return `
+            <div class="picker-item ${tempSelectedMonth === monthNum ? 'active' : ''} ${isDisabled ? 'disabled' : ''}" 
+                 onclick="${isDisabled ? '' : `selectMonth(${monthNum})`}">${m}</div>
+        `;
+    }).join('');
 }
 
 window.selectMonth = function (m) {
@@ -275,6 +286,14 @@ window.selectMonth = function (m) {
 
 window.selectYear = function (y) {
     tempSelectedYear = y;
+
+    // Auto-adjust month if current selection has no data in the new year
+    const filters = (apiSummary && apiSummary.available_filters) ? apiSummary.available_filters : {};
+    const available = filters[y] || [];
+    if (available.length > 0 && !available.includes(tempSelectedMonth)) {
+        tempSelectedMonth = available[0];
+    }
+
     renderDatePickerGrids();
 };
 
