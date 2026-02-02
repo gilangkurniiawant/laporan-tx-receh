@@ -412,8 +412,15 @@ function calculateSummary() {
         });
 
         cardsSubTotal = filteredData.reduce((acc, item) => acc + (parseInt(item.jumlah) || 0), 0);
-        const dayCount = (currentPeriod === 'hari') ? 1 : (currentPeriod === 'tahun' ? 12 : new Date().getDate());
-        cardsAvg = cardsSubTotal / dayCount;
+        let dayCount = 1;
+        if (currentPeriod === 'hari') {
+            dayCount = 1;
+        } else if (currentPeriod === 'tahun') {
+            dayCount = isCurrentYear ? (now.getMonth() + 1) : 12;
+        } else { // bulan
+            dayCount = isCurrentMonth ? now.getDate() : new Date(selectedYear, selectedMonth, 0).getDate();
+        }
+        cardsAvg = cardsSubTotal / (dayCount || 1);
         cardsMainTotal = isFiltered ? cardsSubTotal : displayTotal;
     }
 
