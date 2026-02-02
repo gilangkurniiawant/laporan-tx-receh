@@ -168,6 +168,10 @@ function updateDateTime() {
 async function init() {
     toggleLoading(true);
     toggleSummaryLoading(true);
+
+    // Add skeleton class to card amounts immediately
+    document.querySelectorAll('.amount').forEach(el => el.classList.add('skeleton'));
+
     try {
         const url = `${API_URL}?period=${currentPeriod}&month=${selectedMonth}&year=${selectedYear}`;
         const response = await fetch(url);
@@ -809,15 +813,27 @@ function toggleLoading(show) {
 }
 
 function toggleSummaryLoading(show) {
-    const elements = document.querySelectorAll('.skeleton, .skeleton-small');
-    elements.forEach(el => {
-        if (show) {
+    const amountElements = document.querySelectorAll('.amount');
+    const skeletonElements = document.querySelectorAll('.skeleton, .skeleton-small');
+
+    if (show) {
+        amountElements.forEach(el => {
+            el.classList.add('skeleton');
             el.style.opacity = '0.5';
-        } else {
+        });
+        skeletonElements.forEach(el => {
+            el.style.opacity = '0.5';
+        });
+    } else {
+        amountElements.forEach(el => {
+            el.classList.remove('skeleton');
+            el.style.opacity = '1';
+        });
+        skeletonElements.forEach(el => {
             el.style.opacity = '1';
             el.classList.remove('skeleton', 'skeleton-small');
-        }
-    });
+        });
+    }
 }
 
 window.showImage = function (url, caption, amount) {
