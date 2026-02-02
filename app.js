@@ -197,24 +197,18 @@ async function init() {
 }
 
 window.setPeriod = function (period) {
-    if (period === currentPeriod && period !== 'bulan_custom') return;
-
     currentPeriod = period;
 
     // Update active tab UI
     document.querySelectorAll('.period-tab').forEach(btn => btn.classList.remove('active'));
-    if (period !== 'bulan_custom') {
-        const tab = document.getElementById(`tab-${period}`);
-        if (tab) tab.classList.add('active');
-        document.getElementById('selectedMonthText').textContent = 'Pilih Bulan';
-    }
+    const tab = document.getElementById(`tab-${period}`);
+    if (tab) tab.classList.add('active');
+    document.getElementById('selectedMonthText').textContent = 'Pilih Bulan';
 
-    // Reset date picker state to current if not custom
-    if (period !== 'bulan_custom') {
-        const now = new Date();
-        selectedMonth = now.getMonth() + 1;
-        selectedYear = now.getFullYear();
-    }
+    // Reset date picker state to current for standard tabs
+    const now = new Date();
+    selectedMonth = now.getMonth() + 1;
+    selectedYear = now.getFullYear();
 
     init();
 };
@@ -315,8 +309,8 @@ function calculateSummary() {
     let displayAvg = 0;
 
     if (apiSummary) {
-        displayTotal = apiSummary.yearlyTotal;      // Keep yearly for context if available
-        displaySubTotal = apiSummary.monthlyTotal;  // This is actually the 'Period Total' now
+        displayTotal = apiSummary.yearlyTotal;      // Yearly for the target year
+        displaySubTotal = apiSummary.monthlyTotal;  // Targeted period total
         displayAvg = apiSummary.dailyAverage;
     } else {
         displaySubTotal = globalItems.reduce((acc, item) => acc + (parseInt(item.jumlah) || 0), 0);
@@ -325,18 +319,23 @@ function calculateSummary() {
         displayTotal = displaySubTotal;
     }
 
+    const isCurrentYear = selectedYear === new Date().getFullYear();
+    const isCurrentMonth = isCurrentYear && selectedMonth === (new Date().getMonth() + 1);
+    const yearLabel = isCurrentYear ? 'Tahun Ini' : `Tahun ${selectedYear}`;
+    const monthLabel = isCurrentMonth ? 'Bulan Ini' : `${MONTHS_SHORT[selectedMonth - 1]} ${selectedYear}`;
+
     window.currentStats = {
         yearlyTotal: displayTotal,
-        monthlyTotal: displaySubTotal, // Named monthlyTotal but used as period total
+        monthlyTotal: displaySubTotal,
         dailyAverage: displayAvg,
         monthlyItems: globalItems
     };
 
     // Label updates based on period
     const labels = {
-        hari: { total: 'Tahun Ini', sub: 'Hari Ini', avg: 'Rata-rata Hari Ini' },
-        bulan: { total: 'Tahun Ini', sub: 'Bulan Ini', avg: 'Rata-rata Harian' },
-        tahun: { total: 'Tahun Ini', sub: 'Tahun Ini', avg: 'Rata-rata Bulanan' }
+        hari: { total: yearLabel, sub: 'Hari Ini', avg: 'Rata-rata Hari Ini' },
+        bulan: { total: yearLabel, sub: monthLabel, avg: 'Rata-rata Harian' },
+        tahun: { total: yearLabel, sub: 'Total Tahun', avg: 'Rata-rata Bulanan' }
     };
     const currentLabels = labels[currentPeriod] || labels.bulan;
 
