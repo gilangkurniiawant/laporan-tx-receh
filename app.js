@@ -14,6 +14,7 @@ let selectedMonth = new Date().getMonth() + 1; // 1-indexed
 let currentHiddenCategories = new Set();
 
 const MONTHS_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+const MONTHS_LONG = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
 
 const CATEGORIES = [
     "Kebutuhan Pokok",
@@ -323,14 +324,11 @@ function calculateSummary() {
     const isCurrentYear = selectedYear === now.getFullYear();
     const isCurrentMonth = isCurrentYear && selectedMonth === (now.getMonth() + 1);
 
-    // Create detailed date strings
-    const dateStr = now.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
-    const yearSuffix = `(${selectedYear})`;
-    const monthName = MONTHS_SHORT[selectedMonth - 1];
-
-    const yearLabel = isCurrentYear ? `Tahun Ini ${yearSuffix}` : `Tahun ${selectedYear}`;
-    const monthLabel = isCurrentMonth ? `Bulan Ini (${monthName})` : `${monthName} ${selectedYear}`;
-    const dayLabel = `Hari Ini (${dateStr})`;
+    // Create clean date info for parentheses
+    const monthNameLong = MONTHS_LONG[selectedMonth - 1];
+    const infoYear = `(${selectedYear})`;
+    const infoMonth = `(${monthNameLong} ${selectedYear})`;
+    const infoDay = `(${now.getDate()} ${monthNameLong} ${selectedYear})`;
 
     window.currentStats = {
         yearlyTotal: displayTotal,
@@ -341,9 +339,9 @@ function calculateSummary() {
 
     // Label updates based on period
     const labels = {
-        hari: { total: yearLabel, sub: dayLabel, avg: `Rata-rata ${dayLabel}` },
-        bulan: { total: yearLabel, sub: monthLabel, avg: isCurrentMonth ? 'Rata-rata Harian' : `Rata-rata ${monthName}` },
-        tahun: { total: yearLabel, sub: `Total ${selectedYear}`, avg: 'Rata-rata Bulanan' }
+        hari: { total: `Tahun Ini ${infoYear}`, sub: `Hari Ini ${infoDay}`, avg: `Rata-rata Hari Ini ${infoDay}` },
+        bulan: { total: `Tahun Ini ${infoYear}`, sub: `Bulan Ini ${infoMonth}`, avg: isCurrentMonth ? `Rata-rata Harian ${infoMonth}` : `Rata-rata Harian ${infoMonth}` },
+        tahun: { total: `Tahun Ini ${infoYear}`, sub: `Tahun Ini ${infoYear}`, avg: `Rata-rata Bulanan ${infoYear}` }
     };
     const currentLabels = labels[currentPeriod] || labels.bulan;
 
