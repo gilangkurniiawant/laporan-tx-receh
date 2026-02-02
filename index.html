@@ -82,8 +82,11 @@
                 <button class="period-tab" onclick="setPeriod('hari')" id="tab-hari">Hari</button>
                 <button class="period-tab active" onclick="setPeriod('bulan')" id="tab-bulan">Bulan</button>
                 <button class="period-tab" onclick="setPeriod('tahun')" id="tab-tahun">Tahun</button>
-                <button class="period-tab date-picker-trigger" onclick="openDatePicker()">
+                <button class="period-tab date-picker-trigger" onclick="openDatePicker('bulan')" id="tab-bulan-custom">
                     <i class="fa-regular fa-calendar"></i> <span id="selectedMonthText">Pilih Bulan</span>
+                </button>
+                <button class="period-tab date-picker-trigger" onclick="openDatePicker('tahun')" id="tab-tahun-custom">
+                    <i class="fa-regular fa-calendar-days"></i> <span id="selectedYearText">Pilih Tahun</span>
                 </button>
             </div>
         </section>
@@ -183,19 +186,23 @@
     <div id="datePickerModal" class="modal">
         <div class="date-picker-card">
             <div class="date-picker-header">
-                <h3>Per Bulan</h3>
+                <h3 id="pickerTitle">Pilih Periode</h3>
                 <span class="cancel-btn" onclick="closeDatePicker()">Batal</span>
             </div>
 
             <div class="date-picker-body">
-                <label class="picker-label">BULAN</label>
-                <div class="months-grid" id="monthsGrid">
-                    <!-- Months will be injected here -->
+                <div id="monthPickerSection">
+                    <label class="picker-label">BULAN</label>
+                    <div class="months-grid" id="monthsGrid">
+                        <!-- Months will be injected here -->
+                    </div>
                 </div>
 
-                <label class="picker-label">TAHUN</label>
-                <div class="years-grid" id="yearsGrid">
-                    <!-- Years will be injected here -->
+                <div id="yearPickerSection">
+                    <label class="picker-label">TAHUN</label>
+                    <div class="years-grid" id="yearsGrid">
+                        <!-- Years will be injected here -->
+                    </div>
                 </div>
             </div>
 

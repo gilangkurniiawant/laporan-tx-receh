@@ -208,7 +208,10 @@ window.setPeriod = function (period) {
     document.querySelectorAll('.period-tab').forEach(btn => btn.classList.remove('active'));
     const tab = document.getElementById(`tab-${period}`);
     if (tab) tab.classList.add('active');
+
+    // Reset components
     document.getElementById('selectedMonthText').textContent = 'Pilih Bulan';
+    document.getElementById('selectedYearText').textContent = 'Pilih Tahun';
 
     // Reset date picker state to current for standard tabs
     const now = new Date();
@@ -220,9 +223,22 @@ window.setPeriod = function (period) {
 
 let tempSelectedMonth = selectedMonth;
 let tempSelectedYear = selectedYear;
+let tempPickerMode = 'bulan'; // 'bulan' or 'tahun'
 
-window.openDatePicker = function () {
+window.openDatePicker = function (mode = 'bulan') {
+    tempPickerMode = mode;
     const modal = document.getElementById('datePickerModal');
+    const monthSection = document.getElementById('monthPickerSection');
+    const title = document.getElementById('pickerTitle');
+
+    if (mode === 'tahun') {
+        monthSection.style.display = 'none';
+        title.textContent = 'Pilih Tahun';
+    } else {
+        monthSection.style.display = 'block';
+        title.textContent = 'Pilih Bulan';
+    }
+
     modal.style.display = 'flex';
     requestAnimationFrame(() => modal.classList.add('show'));
 
@@ -266,12 +282,19 @@ window.applyDatePicker = function () {
     selectedMonth = tempSelectedMonth;
     selectedYear = tempSelectedYear;
 
-    // UI Update
-    document.getElementById('selectedMonthText').textContent = `${MONTHS_SHORT[selectedMonth - 1]} ${selectedYear}`;
     document.querySelectorAll('.period-tab').forEach(btn => btn.classList.remove('active'));
-    document.querySelector('.date-picker-trigger').classList.add('active');
 
-    currentPeriod = 'bulan'; // It's still a monthly view, but custom
+    if (tempPickerMode === 'tahun') {
+        currentPeriod = 'tahun';
+        document.getElementById('tab-tahun-custom').classList.add('active');
+        document.getElementById('selectedYearText').textContent = `${selectedYear}`;
+        document.getElementById('selectedMonthText').textContent = 'Pilih Bulan';
+    } else {
+        currentPeriod = 'bulan';
+        document.getElementById('tab-bulan-custom').classList.add('active');
+        document.getElementById('selectedMonthText').textContent = `${MONTHS_SHORT[selectedMonth - 1]} ${selectedYear}`;
+        document.getElementById('selectedYearText').textContent = 'Pilih Tahun';
+    }
 
     closeDatePicker();
     init();
