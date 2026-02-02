@@ -501,7 +501,7 @@ function renderCategoryDetails(items = null, total = null) {
             `;
         }).join('');
 
-        const percent = ((b.total / monthlyTotal) * 100).toFixed(1);
+        const percent = ((b.total / displayTotal) * 100).toFixed(1);
 
         return `
             <div class="cat-detail-row" onclick="this.classList.toggle('open')" style="border-left-color: ${getCategoryColor(b.name)}">
