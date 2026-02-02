@@ -319,10 +319,18 @@ function calculateSummary() {
         displayTotal = displaySubTotal;
     }
 
-    const isCurrentYear = selectedYear === new Date().getFullYear();
-    const isCurrentMonth = isCurrentYear && selectedMonth === (new Date().getMonth() + 1);
-    const yearLabel = isCurrentYear ? 'Tahun Ini' : `Tahun ${selectedYear}`;
-    const monthLabel = isCurrentMonth ? 'Bulan Ini' : `${MONTHS_SHORT[selectedMonth - 1]} ${selectedYear}`;
+    const now = new Date();
+    const isCurrentYear = selectedYear === now.getFullYear();
+    const isCurrentMonth = isCurrentYear && selectedMonth === (now.getMonth() + 1);
+
+    // Create detailed date strings
+    const dateStr = now.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
+    const yearSuffix = `(${selectedYear})`;
+    const monthName = MONTHS_SHORT[selectedMonth - 1];
+
+    const yearLabel = isCurrentYear ? `Tahun Ini ${yearSuffix}` : `Tahun ${selectedYear}`;
+    const monthLabel = isCurrentMonth ? `Bulan Ini (${monthName})` : `${monthName} ${selectedYear}`;
+    const dayLabel = `Hari Ini (${dateStr})`;
 
     window.currentStats = {
         yearlyTotal: displayTotal,
@@ -333,9 +341,9 @@ function calculateSummary() {
 
     // Label updates based on period
     const labels = {
-        hari: { total: yearLabel, sub: 'Hari Ini', avg: 'Rata-rata Hari Ini' },
-        bulan: { total: yearLabel, sub: monthLabel, avg: 'Rata-rata Harian' },
-        tahun: { total: yearLabel, sub: 'Total Tahun', avg: 'Rata-rata Bulanan' }
+        hari: { total: yearLabel, sub: dayLabel, avg: `Rata-rata ${dayLabel}` },
+        bulan: { total: yearLabel, sub: monthLabel, avg: isCurrentMonth ? 'Rata-rata Harian' : `Rata-rata ${monthName}` },
+        tahun: { total: yearLabel, sub: `Total ${selectedYear}`, avg: 'Rata-rata Bulanan' }
     };
     const currentLabels = labels[currentPeriod] || labels.bulan;
 
