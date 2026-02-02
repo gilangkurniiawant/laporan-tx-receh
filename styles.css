@@ -1065,3 +1065,156 @@ body {
         gap: 8px;
     }
 }
+
+/* Period Filter Section */
+.period-filter-section {
+    margin-bottom: 25px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.period-filter-section::-webkit-scrollbar {
+    display: none;
+}
+
+.period-tabs {
+    display: flex;
+    gap: 10px;
+    padding: 2px;
+}
+
+.period-tab {
+    padding: 10px 24px;
+    background: white;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    white-space: nowrap;
+    box-shadow: var(--shadow-sm);
+}
+
+.period-tab.active {
+    background: var(--accent-indigo);
+    color: white;
+    border-color: var(--accent-indigo);
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+}
+
+.date-picker-trigger {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-right: 18px;
+}
+
+/* Date Picker Modal */
+.date-picker-card {
+    background: white;
+    width: 90%;
+    max-width: 400px;
+    border-radius: 28px;
+    overflow: hidden;
+    animation: modalSlideUp 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+@keyframes modalSlideUp {
+    from { transform: translateY(100px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.date-picker-header {
+    padding: 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.date-picker-header h3 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+.cancel-btn {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.date-picker-body {
+    padding: 0 24px 24px 24px;
+}
+
+.picker-label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #94a3b8;
+    margin-bottom: 15px;
+    letter-spacing: 0.5px;
+}
+
+.months-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 30px;
+}
+
+.years-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}
+
+.picker-item {
+    padding: 12px 5px;
+    background: #f8fafc;
+    border-radius: 12px;
+    text-align: center;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 1px solid transparent;
+}
+
+.picker-item:hover {
+    background: #f1f5f9;
+}
+
+.picker-item.active {
+    background: var(--accent-indigo);
+    color: white;
+    box-shadow: 0 4px 10px rgba(79, 70, 229, 0.2);
+}
+
+.date-picker-footer {
+    padding: 24px;
+}
+
+.apply-btn {
+    width: 100%;
+    padding: 16px;
+    background: var(--accent-indigo);
+    color: white;
+    border: none;
+    border-radius: 16px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
+}
+
+.apply-btn:active {
+    transform: scale(0.98);
+}

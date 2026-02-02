@@ -76,6 +76,18 @@
             </button>
         </div>
 
+        <!-- Period Filter -->
+        <section class="period-filter-section">
+            <div class="period-tabs">
+                <button class="period-tab" onclick="setPeriod('hari')" id="tab-hari">Hari</button>
+                <button class="period-tab active" onclick="setPeriod('bulan')" id="tab-bulan">Bulan</button>
+                <button class="period-tab" onclick="setPeriod('tahun')" id="tab-tahun">Tahun</button>
+                <button class="period-tab date-picker-trigger" onclick="openDatePicker()">
+                    <i class="fa-regular fa-calendar"></i> <span id="selectedMonthText">Pilih Bulan</span>
+                </button>
+            </div>
+        </section>
+
         <!-- Banner Card Removed -->
 
         <section class="transactions-section">
@@ -166,6 +178,32 @@
             <span class="author-name">Gilang Rhuka</span>
         </div>
     </footer>
+
+    <!-- Date Picker Modal -->
+    <div id="datePickerModal" class="modal">
+        <div class="date-picker-card">
+            <div class="date-picker-header">
+                <h3>Per Bulan</h3>
+                <span class="cancel-btn" onclick="closeDatePicker()">Batal</span>
+            </div>
+            
+            <div class="date-picker-body">
+                <label class="picker-label">BULAN</label>
+                <div class="months-grid" id="monthsGrid">
+                    <!-- Months will be injected here -->
+                </div>
+
+                <label class="picker-label">TAHUN</label>
+                <div class="years-grid" id="yearsGrid">
+                    <!-- Years will be injected here -->
+                </div>
+            </div>
+
+            <div class="date-picker-footer">
+                <button class="apply-btn" onclick="applyDatePicker()">Terapkan Filter</button>
+            </div>
+        </div>
+    </div>
 
     <script src="app.js"></script>
 </body>

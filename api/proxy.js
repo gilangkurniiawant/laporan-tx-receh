@@ -16,11 +16,20 @@ export default async function handler(req, res) {
         return;
     }
 
-    // URL API yang dinamis
-    const endpoint = req.query.endpoint || 'api_laporan_lengkap.php';
-    const API_URL = `https://core.akun.vip/apps/receh/${endpoint}`;
-
     try {
+        // URL API yang dinamis
+        const endpoint = req.query.endpoint || 'api_laporan_lengkap.php';
+        let targetUrl = `https://core.akun.vip/apps/receh/${endpoint}`;
+
+        // Teruskan query params (period, month, year, dll)
+        const params = new URLSearchParams();
+        for (const [key, value] of Object.entries(req.query)) {
+            if (key !== 'endpoint') params.append(key, value);
+        }
+        if (params.toString()) {
+            targetUrl += `?${params.toString()}`;
+        }
+
         // Create AbortController untuk timeout
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 detik timeout
@@ -42,7 +51,7 @@ export default async function handler(req, res) {
         }
 
         // Fetch dari API backend
-        const response = await fetch(API_URL, fetchOptions);
+        const response = await fetch(targetUrl, fetchOptions);
 
         clearTimeout(timeoutId);
 
@@ -58,48 +67,12 @@ export default async function handler(req, res) {
         // Parse JSON response
         const data = await response.json();
 
-        // Process data for efficiency if it's the main report list
-        if (data.status === 'success' && data.data && data.data.pengeluaran && endpoint === 'api_laporan_lengkap.php') {
-            const d = new Date();
-            const utc = d.getTime() + (d.getTimezoneOffset() * 60000);
-            const idTime = new Date(utc + (3600000 * 7)); // Indonesia GMT+7
-
-            const targetMonth = idTime.getMonth();
-            const targetYear = idTime.getFullYear();
-            const todayDay = idTime.getDate();
-
-            const allExp = data.data.pengeluaran;
-            let yearlyTotal = 0;
-            let monthlyTotal = 0;
-
-            const monthlyExp = allExp.filter(item => {
-                const itemDate = new Date(item.created_at.replace(' ', 'T'));
-                const itemMonth = itemDate.getMonth();
-                const itemYear = itemDate.getFullYear();
-                const amount = parseInt(item.jumlah) || 0;
-
-                if (itemYear === targetYear) {
-                    yearlyTotal += amount;
-                    if (itemMonth === targetMonth) {
-                        monthlyTotal += amount;
-                        return true;
-                    }
-                }
-                return false;
-            });
-
-            // Calculate efficient summary
-            const dailyAvg = monthlyTotal / todayDay;
-
-            // Update data structure to be more efficient
-            data.data.pengeluaran = monthlyExp;
+        // No more manual filtering here as PHP backend handles it now.
+        if (data.status === 'success' && data.data && data.data.pengeluaran && !data.data.summary) {
             data.data.summary = {
-                yearlyTotal,
-                monthlyTotal,
-                dailyAverage: dailyAvg,
-                dataMonth: targetMonth,
-                dataYear: targetYear,
-                todayDay: todayDay
+                yearlyTotal: 0,
+                monthlyTotal: data.data.pengeluaran.reduce((acc, t) => acc + (parseInt(t.jumlah) || 0), 0),
+                dailyAverage: 0
             };
         }
 
@@ -115,4 +88,3 @@ export default async function handler(req, res) {
         });
     }
 }
-

@@ -8,6 +8,12 @@ let isDataLoaded = false;
 let currentPage = 1;
 const itemsPerPage = 10;
 
+let currentPeriod = 'bulan'; // 'hari', 'bulan', 'tahun'
+let selectedYear = new Date().getFullYear();
+let selectedMonth = new Date().getMonth() + 1; // 1-indexed
+
+const MONTHS_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+
 const CATEGORIES = [
     "Kebutuhan Pokok",
     "Kebutuhan Bayi",
@@ -161,7 +167,8 @@ async function init() {
     toggleLoading(true);
     toggleSummaryLoading(true);
     try {
-        const response = await fetch(API_URL);
+        const url = `${API_URL}?period=${currentPeriod}&month=${selectedMonth}&year=${selectedYear}`;
+        const response = await fetch(url);
         if (!response.ok) throw new Error('Network response was not ok');
         const json = await response.json();
 
@@ -169,7 +176,6 @@ async function init() {
             allTransactions = json.data.pengeluaran || [];
             apiSummary = json.data.summary || null;
 
-            // Map categories to transactions if not already set
             allTransactions.forEach(t => {
                 if (!t.kategori) t.kategori = predictCategory(t.keperluan || t.keterangan);
             });
@@ -178,14 +184,98 @@ async function init() {
             updateDisplay();
         } else {
             console.error('API Error:', json.message);
+            showToast('Gagal memuat data: ' + json.message, 'error');
         }
     } catch (error) {
         console.warn('Fetch failed:', error);
+        showToast('Terjadi kesalahan saat memuat data', 'error');
     } finally {
         toggleLoading(false);
         toggleSummaryLoading(false);
     }
 }
+
+window.setPeriod = function (period) {
+    if (period === currentPeriod && period !== 'bulan_custom') return;
+
+    currentPeriod = period;
+
+    // Update active tab UI
+    document.querySelectorAll('.period-tab').forEach(btn => btn.classList.remove('active'));
+    if (period !== 'bulan_custom') {
+        const tab = document.getElementById(`tab-${period}`);
+        if (tab) tab.classList.add('active');
+        document.getElementById('selectedMonthText').textContent = 'Pilih Bulan';
+    }
+
+    // Reset date picker state to current if not custom
+    if (period !== 'bulan_custom') {
+        const now = new Date();
+        selectedMonth = now.getMonth() + 1;
+        selectedYear = now.getFullYear();
+    }
+
+    init();
+};
+
+let tempSelectedMonth = selectedMonth;
+let tempSelectedYear = selectedYear;
+
+window.openDatePicker = function () {
+    const modal = document.getElementById('datePickerModal');
+    modal.style.display = 'flex';
+    requestAnimationFrame(() => modal.classList.add('show'));
+
+    tempSelectedMonth = selectedMonth;
+    tempSelectedYear = selectedYear;
+    renderDatePickerGrids();
+};
+
+window.closeDatePicker = function () {
+    const modal = document.getElementById('datePickerModal');
+    modal.classList.remove('show');
+    setTimeout(() => { modal.style.display = 'none'; }, 300);
+};
+
+function renderDatePickerGrids() {
+    const monthsGrid = document.getElementById('monthsGrid');
+    const yearsGrid = document.getElementById('yearsGrid');
+
+    monthsGrid.innerHTML = MONTHS_SHORT.map((m, i) => `
+        <div class="picker-item ${tempSelectedMonth === i + 1 ? 'active' : ''}" onclick="selectMonth(${i + 1})">${m}</div>
+    `).join('');
+
+    const currentYear = new Date().getFullYear();
+    const years = [currentYear - 2, currentYear - 1, currentYear];
+    yearsGrid.innerHTML = years.map(y => `
+        <div class="picker-item ${tempSelectedYear === y ? 'active' : ''}" onclick="selectYear(${y})">${y}</div>
+    `).join('');
+}
+
+window.selectMonth = function (m) {
+    tempSelectedMonth = m;
+    renderDatePickerGrids();
+};
+
+window.selectYear = function (y) {
+    tempSelectedYear = y;
+    renderDatePickerGrids();
+};
+
+window.applyDatePicker = function () {
+    selectedMonth = tempSelectedMonth;
+    selectedYear = tempSelectedYear;
+
+    // UI Update
+    document.getElementById('selectedMonthText').textContent = `${MONTHS_SHORT[selectedMonth - 1]} ${selectedYear}`;
+    document.querySelectorAll('.period-tab').forEach(btn => btn.classList.remove('active'));
+    document.querySelector('.date-picker-trigger').classList.add('active');
+
+    currentPeriod = 'bulan'; // It's still a monthly view, but custom
+
+    closeDatePicker();
+    init();
+};
 
 function updateDisplay() {
     const filtered = filterTransactions();
@@ -214,77 +304,70 @@ function filterTransactions() {
 }
 
 function calculateSummary() {
-    const now = new Date();
-    // Use the same timezone logic as proxy for consistency
-    const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
-    const idTime = new Date(utc + (3600000 * 7));
-    const todayDay = idTime.getDate();
-
     const searchVal = document.getElementById('searchInput').value.toLowerCase();
 
-    // 1. Calculate Global Stats for Analysis Modal (Current Month only as per requirement)
-    // Since API now only returns this month's data, allTransactions contains monthly items
-    const globalMonthlyItems = allTransactions;
+    // Stats are now largely provided by API based on context (period/month/year)
+    const globalItems = allTransactions;
 
-    let globalYearlyTotal = 0;
-    let globalMonthlyTotal = 0;
-    let globalDailyAvg = 0;
+    let displayTotal = 0;
+    let displaySubTotal = 0;
+    let displayAvg = 0;
 
     if (apiSummary) {
-        globalYearlyTotal = apiSummary.yearlyTotal;
-        globalMonthlyTotal = apiSummary.monthlyTotal;
-        globalDailyAvg = apiSummary.dailyAverage;
+        displayTotal = apiSummary.yearlyTotal;      // Keep yearly for context if available
+        displaySubTotal = apiSummary.monthlyTotal;  // This is actually the 'Period Total' now
+        displayAvg = apiSummary.dailyAverage;
     } else {
-        // Fallback if data not processed by proxy
-        globalMonthlyTotal = globalMonthlyItems.reduce((acc, item) => acc + (parseInt(item.jumlah) || 0), 0);
-        globalDailyAvg = globalMonthlyTotal / todayDay;
-        globalYearlyTotal = globalMonthlyTotal;
+        displaySubTotal = globalItems.reduce((acc, item) => acc + (parseInt(item.jumlah) || 0), 0);
+        const dayCount = (currentPeriod === 'hari') ? 1 : (currentPeriod === 'tahun' ? 365 : new Date().getDate());
+        displayAvg = displaySubTotal / dayCount;
+        displayTotal = displaySubTotal;
     }
 
     window.currentStats = {
-        yearlyTotal: globalYearlyTotal,
-        monthlyTotal: globalMonthlyTotal,
-        dailyAverage: globalDailyAvg,
-        monthlyItems: globalMonthlyItems
+        yearlyTotal: displayTotal,
+        monthlyTotal: displaySubTotal, // Named monthlyTotal but used as period total
+        dailyAverage: displayAvg,
+        monthlyItems: globalItems
     };
 
-    // 2. Calculate Filtered Stats for Dashboard Cards
+    // Label updates based on period
+    const labels = {
+        hari: { total: 'Tahun Ini', sub: 'Hari Ini', avg: 'Rata-rata Hari Ini' },
+        bulan: { total: 'Tahun Ini', sub: 'Bulan Ini', avg: 'Rata-rata Harian' },
+        tahun: { total: 'Tahun Ini', sub: 'Tahun Ini', avg: 'Rata-rata Bulanan' }
+    };
+    const currentLabels = labels[currentPeriod] || labels.bulan;
+
+    document.querySelector('.gradient-purple .card-label').textContent = `Pengeluaran ${currentLabels.total}`;
+    document.querySelector('.gradient-indigo .card-label').textContent = `Pengeluaran ${currentLabels.sub}`;
+    document.querySelector('.gradient-green .card-label').textContent = currentLabels.avg;
+
+    // Filter calculations for cards
     const isFiltered = currentCategoryFilter !== 'Semua' || searchVal !== '';
+    let cardsMainTotal, cardsSubTotal, cardsAvg;
 
-    let cardsYearlyTotal, cardsMonthlyTotal, cardsDailyAvg;
-
-    if (!isFiltered && apiSummary) {
-        cardsYearlyTotal = apiSummary.yearlyTotal;
-        cardsMonthlyTotal = apiSummary.monthlyTotal;
-        cardsDailyAvg = apiSummary.dailyAverage;
+    if (!isFiltered) {
+        cardsMainTotal = displayTotal;
+        cardsSubTotal = displaySubTotal;
+        cardsAvg = displayAvg;
     } else {
         const filteredData = allTransactions.filter(t => {
-            let matchesCategory = false;
-            if (currentCategoryFilter === 'Semua') {
-                matchesCategory = true;
-            } else if (currentCategoryFilter === 'Belum Ada Kategori') {
-                matchesCategory = !t.kategori;
-            } else {
-                matchesCategory = t.kategori === currentCategoryFilter;
-            }
+            let matchesCategory = (currentCategoryFilter === 'Semua') ||
+                (currentCategoryFilter === 'Belum Ada Kategori' ? !t.kategori : t.kategori === currentCategoryFilter);
             const text = (t.keperluan || t.keterangan || t.user_nama || '').toLowerCase();
             return matchesCategory && text.includes(searchVal);
         });
 
-        cardsMonthlyTotal = filteredData.reduce((acc, item) => acc + (parseInt(item.jumlah) || 0), 0);
-        cardsDailyAvg = cardsMonthlyTotal / todayDay;
-
-        // For cardsYearlyTotal when filtered, we don't have full year data in frontend anymore.
-        // We'll show the monthly filtered total or a placeholder.
-        // The user specifically asked for "total pengeluaran di hitung di api", 
-        // which usually refers to the main summary metrics.
-        cardsYearlyTotal = isFiltered ? cardsMonthlyTotal : globalYearlyTotal;
+        cardsSubTotal = filteredData.reduce((acc, item) => acc + (parseInt(item.jumlah) || 0), 0);
+        const dayCount = (currentPeriod === 'hari') ? 1 : (currentPeriod === 'tahun' ? 12 : new Date().getDate());
+        cardsAvg = cardsSubTotal / dayCount;
+        cardsMainTotal = isFiltered ? cardsSubTotal : displayTotal;
     }
 
-    // Update Dashboard UI with stats
-    document.getElementById('totalPengeluaran').textContent = formatRupiah(cardsYearlyTotal);
-    document.getElementById('totalPengeluaranBulanIni').textContent = formatRupiah(cardsMonthlyTotal);
-    document.getElementById('rataRataPengeluaranHarian').textContent = formatRupiah(cardsDailyAvg);
+    document.getElementById('totalPengeluaran').textContent = formatRupiah(cardsMainTotal);
+    document.getElementById('totalPengeluaranBulanIni').textContent = formatRupiah(cardsSubTotal);
+    document.getElementById('rataRataPengeluaranHarian').textContent = formatRupiah(cardsAvg);
 
     // Update Filter Labels in Cards
     let filterText = '';
