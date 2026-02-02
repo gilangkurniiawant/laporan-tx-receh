@@ -58,6 +58,51 @@ export default async function handler(req, res) {
         // Parse JSON response
         const data = await response.json();
 
+        // Process data for efficiency if it's the main report list
+        if (data.status === 'success' && data.data && data.data.pengeluaran && endpoint === 'api_laporan_lengkap.php') {
+            const d = new Date();
+            const utc = d.getTime() + (d.getTimezoneOffset() * 60000);
+            const idTime = new Date(utc + (3600000 * 7)); // Indonesia GMT+7
+
+            const targetMonth = idTime.getMonth();
+            const targetYear = idTime.getFullYear();
+            const todayDay = idTime.getDate();
+
+            const allExp = data.data.pengeluaran;
+            let yearlyTotal = 0;
+            let monthlyTotal = 0;
+
+            const monthlyExp = allExp.filter(item => {
+                const itemDate = new Date(item.created_at.replace(' ', 'T'));
+                const itemMonth = itemDate.getMonth();
+                const itemYear = itemDate.getFullYear();
+                const amount = parseInt(item.jumlah) || 0;
+
+                if (itemYear === targetYear) {
+                    yearlyTotal += amount;
+                    if (itemMonth === targetMonth) {
+                        monthlyTotal += amount;
+                        return true;
+                    }
+                }
+                return false;
+            });
+
+            // Calculate efficient summary
+            const dailyAvg = monthlyTotal / todayDay;
+
+            // Update data structure to be more efficient
+            data.data.pengeluaran = monthlyExp;
+            data.data.summary = {
+                yearlyTotal,
+                monthlyTotal,
+                dailyAverage: dailyAvg,
+                dataMonth: targetMonth,
+                dataYear: targetYear,
+                todayDay: todayDay
+            };
+        }
+
         // Return response ke frontend
         res.status(200).json(data);
 
